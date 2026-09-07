@@ -30,7 +30,13 @@ Crear una plataforma de gestión de servicios (CRM/Booking) que sea intuitiva, e
     *   **Panel de Lealtad:** Un widget dedicado que muestre los datos de `v_client_loyalty` (Ej: "Nivel de Lealtad: Oro", "Descuento Sugerido: 20%").
 *   **UX Requisito:** Al hacer clic en un cliente, su historial debe cargarse automáticamente, permitiendo ver el impacto de la lealtad en la gestión.
 
-### 3. Gestión de Reservas (Booking Flow)
+### 3. Gestión de Servicios (Catálogo)
+*   **Propósito:** Administrar el catálogo de servicios.
+*   **Datos a Consumir:**
+    *   `services` (Nombre, Precio Base, Entregables, Estado Activo).
+    *   **Funcionalidad:** Debe permitir la activación/desactivación de servicios.
+
+### 4. Gestión de Reservas (Booking Flow)
 *   **Componente Central:** El *Card* de la Reserva. Este componente debe ser dinámico y cambiar su apariencia y funcionalidad según el estado.
 *   **Flujo de Estado (CRÍTICO):**
     *   **Agendada:** Mostrar un *checkbox* o botón de "Contrato Firmado" (Validación: Debe ser `true` para avanzar).
@@ -39,7 +45,7 @@ Crear una plataforma de gestión de servicios (CRM/Booking) que sea intuitiva, e
     *   **Cancelada:** Requerir un campo de texto obligatorio para la "Razón de Cancelación".
 *   **UX Requisito:** El usuario debe sentir que está siguiendo un proceso guiado. Los botones de acción deben estar deshabilitados si las condiciones de negocio no se cumplen (Ej: No se puede marcar como 'Entregada' si el pago no está completo).
 
-### 4. Gestión de Pagos (Finanzas)
+### 5. Gestión de Pagos (Finanzas)
 *   **Diseño:** Debe ser una tabla de transacciones.
 *   **Visualización:**
     *   **Monto Bruto:** Visible.

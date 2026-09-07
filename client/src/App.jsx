@@ -7,7 +7,7 @@ function App() {
         <div className="App">
             {/* Aquí se podría añadir un componente de navegación global */}
             <Dashboard />
-        </div>
+        </div >
     );
 }
 

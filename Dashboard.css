@@ -84,6 +84,19 @@ h2 {
     border-radius: 4px;
 }
 
+/* --- Estilos de Oportunidades --- */
+.opportunity-item {
+    padding: 8px 0;
+    border-bottom: 1px dotted #eee;
+    font-size: 1em;
+}
+.opportunity-item:last-child {
+    border-bottom: none;
+}
+.opportunity-name {
+    color: #007bff;
+}
+
 /* --- Estilos de Lealtad --- */
 .loyalty-card {
     text-align: center;

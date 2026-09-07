@@ -26,7 +26,7 @@ const AlertsWidget = ({ alerts }) => {
                     )}
                 </div>
             ))}
-        </div>
+        </div >
     );
 };
 

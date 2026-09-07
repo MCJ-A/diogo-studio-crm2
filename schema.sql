@@ -59,7 +59,7 @@ SELECT
     c.id,
     c.nombre,
     COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) AS sesiones_completadas,
-    COALESCE(SUM(b.precio_base), 0) AS total_gastado,
+    COALESCE(SUM(p.monto_bruto), 0) AS total_gastado, -- CORRECCIÓN: Sumar de payments.monto_bruto
     MAX(b.fecha_sesion) AS fecha_ultima_sesion,
     COUNT(DISTINCT c.referred_by_client_id) AS total_referidos,
     CASE 
@@ -70,6 +70,7 @@ SELECT
     END AS descuento_sugerido_pct
 FROM clients c
 LEFT JOIN bookings b ON c.id = b.client_id
+LEFT JOIN payments p ON b.id = p.booking_id -- JOIN con pagos para calcular el gasto
 GROUP BY c.id, c.nombre;
 
 -- Vista de oportunidades de recontacto

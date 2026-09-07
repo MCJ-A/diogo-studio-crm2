@@ -16,22 +16,22 @@ const LoyaltyWidget = ({ loyaltyData }) => {
                 <div className="metric-item">
                     <span className="metric-value">${total_gastado.toLocaleString('es-MX')}</span>
                     <span className="metric-label">Total Gastado</span>
-                </div>
+                </div >
                 <div className="metric-item">
                     <span className="metric-value">{sesiones_completadas}</span>
                     <span className="metric-label">Sesiones Completadas</span>
-                </div>
+                </div >
                 <div className="metric-item">
                     <span className="metric-value">{total_referidos}</span>
                     <span className="metric-label">Clientes Referidos</span>
-                </div>
-            </div>
+                </div >
+            </div >
 
             <div className="action-panel mt-3">
                 <p className="alert-info">🎁 Descuento Sugerido: <span className="highlight-discount">{descuento_sugerido_pct}%</span></p>
                 <button className="btn-primary">Ver Historial Completo</button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

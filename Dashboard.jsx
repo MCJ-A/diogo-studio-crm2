@@ -76,7 +76,7 @@ const Dashboard = () => {
     }, []);
 
     if (loading) {
-        return <div className="dashboard-container">Cargando panel de control...</div>;
+        return <div className="dashboard-container">Cargando panel de control...</div >
     }
 
     return (
@@ -110,14 +110,14 @@ const Dashboard = () => {
                     <section className="card mb-4">
                         <h2>📊 KPIs Rápidos</h2>
                         <div className="kpi-grid">
-                            <div className="kpi-card">Reservas Hoy: 5</div>
-                            <div className="kpi-card">Ingreso Semanal: $15,000</div>
-                            <div className="kpi-card">Clientes Activos: 120</div>
+                            <div className="kpi-card">Reservas Hoy: 5</div >
+                            <div className="kpi-card">Ingreso Semanal: $15,000</div >
+                            <div className="kpi-card">Clientes Activos: 120</div >
                         </div>
                     </section>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
