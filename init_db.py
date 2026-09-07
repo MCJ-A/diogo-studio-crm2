@@ -66,18 +66,19 @@ def init_database():
         )
         
         # 4. Pagos con descuentos y anticipos
+        # Se omite 'saldo_pendiente' ya que es una columna generada (GENERATED ALWAYS AS)
         payments_data = [
-            (1, 2500.0, 300.0, 'Primer cliente', 800.0, 0.0, 'Completado', '2024-05-16'),
-            (2, 1800.0, 0.0, '', 1800.0, 0.0, 'Completado', '2024-06-21'),
-            (3, 1200.0, 150.0, 'Fidelidad', 1050.0, 0.0, 'Completado', '2024-08-11'),
-            (4, 3000.0, 0.0, '', 3000.0, 0.0, 'Completado', '2024-05-26'),
-            (5, 1800.0, 0.0, '', 1800.0, 0.0, 'Pendiente', None),
-            (6, 1200.0, 100.0, 'Promoción', 1100.0, 500.0, 'Parcial', '2024-06-02'),
-            (7, 3000.0, 0.0, '', 3000.0, 0.0, 'Pendiente', None),
+            (1, 2500.0, 300.0, 'Primer cliente', 800.0, 'Completado', '2024-05-16'),
+            (2, 1800.0, 0.0, '', 1800.0, 'Completado', '2024-06-21'),
+            (3, 1200.0, 150.0, 'Fidelidad', 1050.0, 'Completado', '2024-08-11'),
+            (4, 3000.0, 0.0, '', 3000.0, 'Completado', '2024-05-26'),
+            (5, 1800.0, 0.0, '', 1800.0, 'Pendiente', None),
+            (6, 1200.0, 100.0, 'Promoción', 1100.0, 'Parcial', '2024-06-02'),
+            (7, 3000.0, 0.0, '', 3000.0, 'Pendiente', None),
         ]
         
         cursor.executemany(
-            "INSERT INTO payments (booking_id, monto_bruto, descuento_aplicado, motivo_descuento, anticipo_pagado, saldo_pendiente, estado_pago, fecha_ultimo_pago) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO payments (booking_id, monto_bruto, descuento_aplicado, motivo_descuento, anticipo_pagado, estado_pago, fecha_ultimo_pago) VALUES (?, ?, ?, ?, ?, ?, ?)",
             payments_data
         )
         
