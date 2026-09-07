@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: diogo-studio-crm
+    env: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: gunicorn --chdir backend app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: JWT_SECRET_KEY
+        generateValue: true

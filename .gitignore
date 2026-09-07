@@ -1,0 +1,24 @@
+# Base de datos
+*.db
+*.db-shm
+*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Node / Vite
+client/node_modules/
+client/dist/
+client/.vite/
+
+# Aider (herramienta de sesión anterior)
+.aider*
+
+# OS
+.DS_Store
+Thumbs.db

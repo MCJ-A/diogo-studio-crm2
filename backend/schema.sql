@@ -1,5 +1,12 @@
 PRAGMA foreign_keys = ON;
 
+-- Tabla de usuarios (Autenticación)
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
+);
+
 -- Tabla de clientes
 CREATE TABLE clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +66,7 @@ SELECT
     c.id,
     c.nombre,
     COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) AS sesiones_completadas,
-    COALESCE(SUM(p.monto_bruto), 0) AS total_gastado, -- CORRECCIÓN: Sumar de payments.monto_bruto
+    COALESCE(SUM(CASE WHEN b.estado IN ('Realizada','Entregada') THEN p.monto_bruto - COALESCE(p.descuento_aplicado,0) ELSE 0 END), 0) AS total_gastado,
     MAX(b.fecha_sesion) AS fecha_ultima_sesion,
     COUNT(DISTINCT c.referred_by_client_id) AS total_referidos,
     CASE 
@@ -70,8 +77,9 @@ SELECT
     END AS descuento_sugerido_pct
 FROM clients c
 LEFT JOIN bookings b ON c.id = b.client_id
-LEFT JOIN payments p ON b.id = p.booking_id -- JOIN con pagos para calcular el gasto
+LEFT JOIN payments p ON b.id = p.booking_id
 GROUP BY c.id, c.nombre;
+
 
 -- Vista de oportunidades de recontacto
 CREATE VIEW v_oportunidades_recontacto AS
