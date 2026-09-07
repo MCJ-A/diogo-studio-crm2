@@ -1,1 +1,1 @@
-﻿CRM Fotografia
+CRM Fotografia
