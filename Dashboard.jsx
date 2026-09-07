@@ -30,11 +30,24 @@ const mockFetchLoyalty = () => {
         }, 500);
     });
 };
+
+const mockFetchOpportunities = () => {
+    // Simula la llamada a /api/dashboard/opportunities
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve([
+                { nombre: 'Ana Martínez', motivo: 'Aniversario', fecha: '2024-08-10', dias: 10 },
+                { nombre: 'Luis Fernández', motivo: 'Inactividad', fecha: '2024-04-01', dias: 300 },
+            ]);
+        }, 500);
+    });
+};
 // -----------------------------------------------------------------
 
 const Dashboard = () => {
     const [alerts, setAlerts] = useState([]);
     const [loyaltyData, setLoyaltyData] = useState(null);
+    const [opportunities, setOpportunities] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -47,6 +60,11 @@ const Dashboard = () => {
                 // 2. Obtener Métricas de Lealtad
                 const loyaltyData = await mockFetchLoyalty();
                 setLoyaltyData(loyaltyData);
+
+                // 3. Obtener Oportunidades de Recontacto
+                const opportunitiesData = await mockFetchOpportunities();
+                setOpportunities(opportunitiesData);
+
             } catch (error) {
                 console.error("Error al cargar datos del dashboard:", error);
             } finally {
@@ -73,11 +91,20 @@ const Dashboard = () => {
                         <AlertsWidget alerts={alerts} />
                     </section>
                     
-                    {/* Aquí iría el widget de Oportunidades de Recontacto */}
+                    {/* Widget de Oportunidades de Recontacto (Nuevo) */}
                     <section className="card mb-4">
                         <h2>📅 Oportunidades de Recontacto</h2>
-                        <p>Listado de clientes inactivos o con fechas especiales próximas.</p>
-                        {/* Implementar lógica de v_oportunidades_recontacto */}
+                        <div className="opportunity-list">
+                            {opportunities.length > 0 ? (
+                                opportunities.map((opp, index) => (
+                                    <div key={index} className="opportunity-item">
+                                        <strong>{opp.nombre}</strong> ({opp.motivo}): {opp.dias} días.
+                                    </div>
+                                ))
+                            ) : (
+                                <p>No hay oportunidades de recontacto programadas.</p>
+                            )}
+                        </div>
                     </section>
                 </div>
 
