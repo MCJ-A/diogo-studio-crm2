@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import AlertsWidget from './AlertsWidget';
-import LoyaltyWidget from './LoyaltyWidget';
-import './Dashboard.css'; // Asumiendo un archivo de estilos
+import AlertsWidget from '../components/AlertsWidget';
+import LoyaltyWidget from '../components/LoyaltyWidget';
+import OpportunityWidget from '../components/OpportunityWidget';
+import './styles/Dashboard.css'; // Asumiendo un archivo de estilos
 
 // --- MOCK API CALLS (REEMPLAZAR CON LLAMADAS REALES A LA API) ---
 const mockFetchAlerts = () => {
@@ -91,20 +92,10 @@ const Dashboard = () => {
                         <AlertsWidget alerts={alerts} />
                     </section>
                     
-                    {/* Widget de Oportunidades de Recontacto (Nuevo) */}
+                    {/* Widget de Oportunidades de Recontacto */}
                     <section className="card mb-4">
                         <h2>📅 Oportunidades de Recontacto</h2>
-                        <div className="opportunity-list">
-                            {opportunities.length > 0 ? (
-                                opportunities.map((opp, index) => (
-                                    <div key={index} className="opportunity-item">
-                                        <strong>{opp.nombre}</strong> ({opp.motivo}): {opp.dias} días.
-                                    </div>
-                                ))
-                            ) : (
-                                <p>No hay oportunidades de recontacto programadas.</p>
-                            )}
-                        </div>
+                        <OpportunityWidget opportunities={opportunities} />
                     </section>
                 </div>
 
