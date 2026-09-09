@@ -1566,20 +1566,37 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 6px 20px rgba(245, 185, 85, 0.35);
 }
 
-/* KPI Highlights Grid - Haute Atelier 2x2 */
+/* KPI Highlights Grid / Track */
 .kpi-luxury-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 1024px) {
   .kpi-luxury-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
+@media (max-width: 640px) {
+  .kpi-luxury-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding-bottom: 6px;
+    margin: 0 -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .kpi-luxury-card {
+    min-width: 200px;
+    flex: 1 0 auto;
+    scroll-snap-align: start;
+  }
+}
 
 .kpi-luxury-card {
   position: relative;
@@ -2618,8 +2635,52 @@ img { max-width: 100%; display: block; }
 
 .kpi-luxury-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .kpi-luxury-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-luxury-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+  .kpi-luxury-card {
+    padding: 12px 10px !important;
+    gap: 8px !important;
+    border-radius: 12px !important;
+  }
+  .kpi-card-title {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.02em;
+  }
+  .kpi-icon-box {
+    width: 26px !important;
+    height: 26px !important;
+  }
+  .kpi-icon-box svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .kpi-luxury-value {
+    font-size: 1.22rem !important;
+  }
+  .kpi-trend-pill {
+    font-size: 0.62rem !important;
+    padding: 2px 4px !important;
+  }
+  .kpi-card-footer {
+    font-size: 0.65rem !important;
+    padding-top: 6px !important;
+    flex-wrap: wrap !important;
+    gap: 2px !important;
+  }
 }
 
 .kpi-luxury-card {

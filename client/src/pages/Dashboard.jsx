@@ -116,8 +116,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. KPI Highlights Grid (Responsive Track) */}
-      <section className="kpi-luxury-grid">
+      {/* 2. KPI Highlights Grid (2x2 on mobile, 4 columns on desktop) */}
+      <section className="kpi-luxury-grid grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         
         {/* Card 1: Reservas */}
         <div className="kpi-luxury-card">
