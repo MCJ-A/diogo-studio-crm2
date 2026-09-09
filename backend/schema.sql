@@ -135,3 +135,20 @@ CREATE INDEX idx_bookings_fecha_sesion ON bookings(fecha_sesion);
 CREATE INDEX idx_bookings_estado ON bookings(estado);
 CREATE INDEX idx_payments_booking_id ON payments(booking_id);
 CREATE INDEX idx_payments_estado_pago ON payments(estado_pago);
+
+-- Tabla de campañas y newsletters enviadas
+CREATE TABLE IF NOT EXISTS newsletter_campaigns (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    asunto TEXT NOT NULL,
+    audiencia TEXT NOT NULL,
+    contenido_html TEXT NOT NULL,
+    destinatarios_count INTEGER DEFAULT 0,
+    estado TEXT DEFAULT 'enviado',
+    proveedor TEXT DEFAULT 'smtp',
+    fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notas_resultado TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_campaigns_fecha ON newsletter_campaigns(fecha_envio);
+

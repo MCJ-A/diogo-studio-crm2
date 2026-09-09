@@ -6,6 +6,7 @@ import Clients from './pages/Clients'
 import Bookings from './pages/Bookings'
 import Services from './pages/Services'
 import Payments from './pages/Payments'
+import Newsletter from './pages/Newsletter'
 import Login from './pages/Login'
 import './styles/index.css'
 
@@ -37,6 +38,7 @@ function App() {
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/services" element={<Services />} />
           <Route path="/payments" element={<Payments />} />
+          <Route path="/newsletter" element={<Newsletter />} />
         </Routes>
       </main>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, Calendar, Camera, DollarSign, LogOut, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Users, Calendar, Camera, DollarSign, Mail, LogOut, Menu, X } from 'lucide-react'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -94,6 +94,13 @@ export default function Navbar() {
             className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
           >
             <DollarSign size={20} /> Finanzas
+          </NavLink>
+          <NavLink
+            to="/newsletter"
+            onClick={closeMenu}
+            className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
+          >
+            <Mail size={20} /> Campañas
           </NavLink>
         </nav>
 
