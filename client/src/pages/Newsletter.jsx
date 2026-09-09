@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { 
   Mail, Send, Sparkles, Users, Award, Heart, Clock, CheckCircle, 
-  AlertTriangle, RefreshCw, Eye, History, ExternalLink, ShieldAlert
+  AlertTriangle, RefreshCw, Eye, History, ExternalLink, ShieldAlert, Edit
 } from 'lucide-react'
 
 const PRESETS = [
   {
     id: 'temporada',
     name: 'Promoción de Temporada',
-    asunto: '✨ ¡Nueva temporada en Diogo Studio! Cupos limitados para sesiones especiales',
+    asunto: 'Nueva temporada en Diogo Studio: Cupos limitados para sesiones especiales',
     titulo: 'Sesiones Exclusivas de Temporada',
     contenido: `Queremos invitarte a capturar recuerdos únicos en nuestras locaciones especiales de esta temporada.\n\nHemos preparado escenarios y dinámicas pensadas para familias, parejas y retratos personales que buscan una estética cálida y atemporal.\n\nLos cupos son limitados por semana para garantizar una experiencia personalizada de alta calidad. ¡Reserva con anticipación y asegura tu fecha favorita!`,
     boton_texto: 'Reservar Fecha por WhatsApp',
@@ -17,7 +17,7 @@ const PRESETS = [
   {
     id: 'vip',
     name: 'Beneficio Exclusivo VIP',
-    asunto: '💎 Regalo exclusivo para ti: Descuento especial de lealtad en Diogo Studio',
+    asunto: 'Regalo exclusivo para ti: Descuento especial de lealtad en Diogo Studio',
     titulo: 'Gracias por ser parte de nuestra comunidad VIP',
     contenido: `Porque valoramos profundamente la confianza que has depositado en nuestro lente, queremos ofrecerte un beneficio exclusivo para tu próxima sesión fotográfica.\n\nDisfruta de tu descuento de lealtad preferencial aplicable a cualquiera de nuestros paquetes (Bodas, Maternidad, Recuerdos Familiares o Retrato Profesional).\n\nEste beneficio es transferible a un familiar directo si deseas hacer un regalo inolvidable.`,
     boton_texto: 'Hacer Válido Mi Descuento',
@@ -26,7 +26,7 @@ const PRESETS = [
   {
     id: 'especial',
     name: 'Celebración & Fechas Especiales',
-    asunto: '🎂 ¡Se acerca una fecha muy especial! Conmemórala con Diogo Studio',
+    asunto: 'Se acerca una fecha muy especial: Conmemórala con Diogo Studio',
     titulo: 'Momentos que merecen ser recordados para siempre',
     contenido: `Sabemos que se aproxima una fecha muy significativa en tu calendario: un aniversario, un cumpleaños o un hito familiar que merece quedar guardado en imágenes.\n\nEn Diogo Studio nos encargamos de que disfrutes la experiencia al máximo, con entrega de galería digital en alta resolución y opciones de impresión fina.\n\nCuéntanos tu idea y crearemos una sesión a la medida de tu celebración.`,
     boton_texto: 'Cotizar Sesión Especial',
@@ -35,7 +35,7 @@ const PRESETS = [
   {
     id: 'reactivacion',
     name: 'Reactivación de Clientes',
-    asunto: '📸 ¿Cuánto tiempo hace que no renuevas tus fotos familiares?',
+    asunto: 'Cuánto tiempo hace que no renuevas tus fotos familiares',
     titulo: 'El tiempo vuela, pero los recuerdos se quedan',
     contenido: `Ha pasado algún tiempo desde que nos vimos en el estudio y sabemos lo rápido que cambian las etapas de la vida.\n\nNos encantaría volver a encontrarnos para actualizar tus retratos y crear nuevas memorias juntos. Tenemos paquetes renovados y nuevas opciones de entregables.\n\nPor reencontrarnos, te obsequiamos 5 fotografías adicionales editadas en tu próxima sesión.`,
     boton_texto: 'Ver Nuevos Paquetes',

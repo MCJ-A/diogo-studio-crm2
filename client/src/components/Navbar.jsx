@@ -153,6 +153,13 @@ export default function Navbar() {
           <DollarSign size={20} />
           <span>Finanzas</span>
         </NavLink>
+        <NavLink
+          to="/newsletter"
+          className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+        >
+          <Mail size={20} />
+          <span>Campañas</span>
+        </NavLink>
       </nav>
     </>
   )

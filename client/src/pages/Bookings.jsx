@@ -13,6 +13,7 @@ const EMPTY_BOOKING = {
 }
 
 export default function Bookings() {
+  const detailRef = useRef(null)
   const [bookings, setBookings] = useState([])
   const [clients, setClients] = useState([])
   const [services, setServices] = useState([])
@@ -47,7 +48,7 @@ export default function Bookings() {
     const arr = Array.isArray(data) ? data : data.bookings || []
     setBookings(arr)
     if (selected) {
-      const updated = arr.find(b => b.id_reserva === selected.id_reserva)
+      const updated = arr.find(b => (b.id_reserva || b.id) === (selected.id_reserva || selected.id))
       if (updated) setSelected(updated)
     }
   }
@@ -55,10 +56,15 @@ export default function Bookings() {
   const updateEstado = async (id, estado, extra = {}) => {
     setActionLoading(true)
     try {
-      const res = await fetch(`/api/bookings/${id}/status`, {
+      const bId = id || selected?.id_reserva || selected?.id
+      const res = await fetch(`/api/bookings/${bId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado, ...extra }),
+        body: JSON.stringify({
+          estado,
+          razon_cancelacion: extra.motivo_cancelacion || extra.razon_cancelacion,
+          ...extra
+        }),
       })
       if (!res.ok) {
         const err = await res.json()
@@ -78,7 +84,8 @@ export default function Bookings() {
   const updateContrato = async (id, val) => {
     setActionLoading(true)
     try {
-      await fetch(`/api/bookings/${id}`, {
+      const bId = id || selected?.id_reserva || selected?.id
+      await fetch(`/api/bookings/${bId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contrato_firmado: val }),
@@ -94,12 +101,25 @@ export default function Bookings() {
   const handleCreate = async () => {
     setCreating(true)
     try {
+      const clientId = parseInt(newBooking.id_cliente || newBooking.client_id)
+      const serviceId = parseInt(newBooking.id_servicio || newBooking.service_id)
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBooking),
+        body: JSON.stringify({
+          client_id: clientId,
+          id_cliente: clientId,
+          service_id: serviceId,
+          id_servicio: serviceId,
+          fecha_sesion: newBooking.fecha_sesion,
+          ubicacion: newBooking.ubicacion,
+          contrato_firmado: !!newBooking.contrato_firmado,
+        }),
       })
-      if (!res.ok) throw new Error('Error al crear reserva')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Error al crear reserva')
+      }
       await refetchBookings()
       setNewBooking(EMPTY_BOOKING)
       setShowModal(false)
@@ -381,14 +401,14 @@ export default function Bookings() {
                 <label className="form-label">Cliente</label>
                 <select className="form-input" value={newBooking.id_cliente} onChange={e => setNewBooking({...newBooking, id_cliente: e.target.value})}>
                   <option value="">Seleccione un cliente...</option>
-                  {clients.map(c => <option key={c.id_cliente} value={c.id_cliente}>{c.nombre}</option>)}
+                  {clients.map(c => <option key={c.id_cliente || c.id} value={c.id_cliente || c.id}>{c.nombre}</option>)}
                 </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Servicio</label>
                 <select className="form-input" value={newBooking.id_servicio} onChange={e => setNewBooking({...newBooking, id_servicio: e.target.value})}>
                   <option value="">Seleccione un servicio...</option>
-                  {services.filter(s => s.activo).map(s => <option key={s.id_servicio} value={s.id_servicio}>{s.nombre} ({fmt(s.precio_base)})</option>)}
+                  {services.filter(s => s.activo).map(s => <option key={s.id_servicio || s.id} value={s.id_servicio || s.id}>{s.nombre} ({fmt(s.precio_base)})</option>)}
                 </select>
               </div>
               <div className="form-row">
