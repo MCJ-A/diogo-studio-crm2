@@ -207,126 +207,121 @@ export default function Newsletter() {
   return (
     <div>
       {/* Header */}
-      <div className="page-header" style={{ flexWrap: 'wrap', gap: 12 }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Mail size={24} className="text-accent" /> Campañas & Newsletter
+          <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white">
+            <Mail className="w-6 h-6 text-amber-500" />
+            <span>Campañas & Newsletter</span>
           </div>
-          <div className="page-subtitle">Envío de promociones y boletines por correo con diseño profesional</div>
+          <p className="text-sm text-slate-400 mt-1">
+            Envío de promociones y boletines de alta fidelidad con diseño editorial
+          </p>
         </div>
 
         {/* Status Badge */}
         {status && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '6px 12px',
-            borderRadius: 20,
-            fontSize: '0.8rem',
-            background: status.configured ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-            border: `1px solid ${status.configured ? 'rgba(34, 197, 94, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-            color: status.configured ? '#22c55e' : '#fbbf24'
-          }}>
-            {status.configured ? <CheckCircle size={14} /> : <ShieldAlert size={14} />}
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
+            status.configured
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+          }`}>
+            {status.configured ? <CheckCircle className="w-3.5 h-3.5" /> : <ShieldAlert className="w-3.5 h-3.5" />}
             <span>{status.message}</span>
           </div>
         )}
       </div>
 
       {feedback && (
-        <div style={{
-          marginBottom: 16,
-          padding: '12px 16px',
-          borderRadius: 8,
-          fontSize: '0.9rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-          background: feedback.type === 'error' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-          border: `1px solid ${feedback.type === 'error' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`,
-          color: feedback.type === 'error' ? 'var(--danger)' : 'var(--success)'
-        }}>
-          {feedback.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
-          {feedback.text}
+        <div className={`mb-6 p-4 rounded-xl text-sm flex items-center gap-3 border transition-all ${
+          feedback.type === 'error'
+            ? 'bg-red-500/10 border-red-500/20 text-red-400'
+            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+        }`}>
+          {feedback.type === 'error' ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <CheckCircle className="w-5 h-5 shrink-0" />}
+          <span className="font-medium">{feedback.text}</span>
         </div>
       )}
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 8 }}>
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-2 mb-6 border-b border-white/[0.08] pb-3">
         <button
-          className={activeTab === 'compose' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'compose'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-semibold shadow-lg shadow-amber-500/20'
+              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+          }`}
           onClick={() => setActiveTab('compose')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          <Send size={15} /> Redactar Campaña
+          <Send className="w-4 h-4" /> Redactar Campaña
         </button>
         <button
-          className={activeTab === 'history' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'history'
+              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-semibold shadow-lg shadow-amber-500/20'
+              : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+          }`}
           onClick={() => setActiveTab('history')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          <History size={15} /> Historial de Envíos ({campaigns.length})
+          <History className="w-4 h-4" /> Historial de Envíos ({campaigns.length})
         </button>
       </div>
 
       {activeTab === 'compose' ? (
-        <div className="dashboard-grid" style={{ gridTemplateColumns: 'minmax(320px, 1.2fr) minmax(320px, 1fr)', gap: 24 }}>
-          
-          {/* Columna Izquierda: Configuración & Redacción */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Form & Controls */}
+          <div className="lg:col-span-7 space-y-6">
             
-            {/* Segmentación de Audiencia */}
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', marginBottom: 12 }}>
-                <Users size={18} className="text-accent" /> 1. Selecciona tu Audiencia
+            {/* 1. Audiencia */}
+            <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white mb-4">
+                <Users className="w-4 h-4 text-amber-500" />
+                <span>1. Selecciona la Audiencia Objetivo</span>
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {audiences && [
-                  { key: 'all', icon: <Users size={16} />, label: 'Todos los Clientes', count: audiences.all?.count || 0 },
-                  { key: 'vip', icon: <Award size={16} />, label: 'Clientes VIP', count: audiences.vip?.count || 0 },
-                  { key: 'special_dates', icon: <Heart size={16} />, label: 'Fechas Especiales', count: audiences.special_dates?.count || 0 },
-                  { key: 'inactive', icon: <Clock size={16} />, label: 'Inactivos (>6m)', count: audiences.inactive?.count || 0 }
+                  { key: 'all', icon: <Users className="w-4 h-4" />, label: 'Todos', count: audiences.all?.count || 0 },
+                  { key: 'vip', icon: <Award className="w-4 h-4" />, label: 'VIPs', count: audiences.vip?.count || 0 },
+                  { key: 'special_dates', icon: <Heart className="w-4 h-4" />, label: 'Fechas Esp.', count: audiences.special_dates?.count || 0 },
+                  { key: 'inactive', icon: <Clock className="w-4 h-4" />, label: 'Inactivos', count: audiences.inactive?.count || 0 }
                 ].map(aud => {
                   const isSel = selectedAudience === aud.key
                   return (
-                    <div
+                    <button
                       key={aud.key}
+                      type="button"
                       onClick={() => setSelectedAudience(aud.key)}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        background: isSel ? 'rgba(217, 119, 6, 0.15)' : 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${isSel ? '#d97706' : 'rgba(255,255,255,0.08)'}`,
-                        transition: 'all 0.15s ease'
-                      }}
+                      className={`p-3.5 rounded-xl text-left border transition-all ${
+                        isSel
+                          ? 'bg-amber-500/10 border-amber-500/40 shadow-md shadow-amber-500/10'
+                          : 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
+                      }`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: isSel ? '#f59e0b' : '#9ca3af', fontSize: '0.8rem', fontWeight: 600 }}>
+                      <div className={`flex items-center gap-1.5 text-xs font-semibold ${isSel ? 'text-amber-400' : 'text-slate-400'}`}>
                         {aud.icon} {aud.label}
                       </div>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', marginTop: 4 }}>
-                        {aud.count} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: '#9ca3af' }}>emails</span>
+                      <div className="text-lg font-bold text-white mt-1">
+                        {aud.count} <span className="text-xs font-normal text-slate-400">dest.</span>
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
               </div>
             </div>
 
-            {/* Plantillas Rápidas */}
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', marginBottom: 12 }}>
-                <Sparkles size={18} className="text-accent" /> 2. Cargar Plantilla Rápida
+            {/* 2. Plantillas Rápidas */}
+            <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>2. Cargar Plantilla Editorial</span>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="flex flex-wrap gap-2">
                 {PRESETS.map(p => (
                   <button
                     key={p.id}
+                    type="button"
                     onClick={() => applyPreset(p)}
-                    className="btn-secondary btn-sm"
-                    style={{ fontSize: '0.8rem', padding: '6px 12px' }}
+                    className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs font-medium text-slate-300 hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all"
                   >
                     {p.name}
                   </button>
@@ -334,57 +329,68 @@ export default function Newsletter() {
               </div>
             </div>
 
-            {/* Formulario de Redacción */}
-            <div className="card">
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', marginBottom: 14 }}>
-                <Edit size={18} className="text-accent" /> 3. Redacción del Mensaje
+            {/* 3. Redacción del Mensaje */}
+            <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Edit className="w-4 h-4 text-amber-500" />
+                <span>3. Redacción del Mensaje</span>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Asunto del Correo (Subject)</label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Asunto del Correo (Subject)
+                </label>
                 <input
-                  className="form-input"
+                  className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                   value={asunto}
                   onChange={e => setAsunto(e.target.value)}
                   placeholder="Ej: ✨ Promoción Exclusiva en Diogo Studio..."
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Título Principal del Correo (Encabezado)</label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Título Principal del Correo
+                </label>
                 <input
-                  className="form-input"
+                  className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                   value={titulo}
                   onChange={e => setTitulo(e.target.value)}
                   placeholder="Ej: Sesiones Especiales de Temporada"
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Cuerpo del Mensaje (Párrafos)</label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Cuerpo del Mensaje
+                </label>
                 <textarea
-                  className="form-textarea"
+                  className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors leading-relaxed"
                   rows={6}
                   value={contenido}
                   onChange={e => setContenido(e.target.value)}
-                  placeholder="Escribe el mensaje de tu correo aquí..."
+                  placeholder="Escribe el contenido de tu boletín aquí..."
                 />
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Texto del Botón (CTA)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Texto del Botón (CTA)
+                  </label>
                   <input
-                    className="form-input"
+                    className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                     value={botonTexto}
                     onChange={e => setBotonTexto(e.target.value)}
                     placeholder="Ej: Reservar Mi Sesión"
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Enlace del Botón (URL / WhatsApp)</label>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Enlace del Botón (URL / WhatsApp)
+                  </label>
                   <input
-                    className="form-input"
+                    className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                     value={botonUrl}
                     onChange={e => setBotonUrl(e.target.value)}
                     placeholder="https://wa.me/..."
@@ -393,150 +399,137 @@ export default function Newsletter() {
               </div>
             </div>
 
-            {/* Enviar Prueba y Enviar Campaña */}
-            <div className="card" style={{ border: '1px solid rgba(217, 119, 6, 0.3)' }}>
-              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '1rem', marginBottom: 12 }}>
-                <Send size={18} className="text-accent" /> 4. Enviar Campaña
+            {/* 4. Enviar Prueba y Enviar Campaña */}
+            <div className="bg-[#111622]/90 border border-amber-500/20 rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Send className="w-4 h-4 text-amber-500" />
+                <span>4. Despacho de Campaña</span>
               </div>
 
               {/* Envío de prueba */}
-              <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <label className="form-label">Enviar prueba a mi correo:</label>
-                <div style={{ display: 'flex', gap: 8 }}>
+              <div className="pb-4 border-b border-white/[0.08]">
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Enviar prueba directa a mi correo:
+                </label>
+                <div className="flex gap-2">
                   <input
-                    className="form-input"
+                    className="flex-1 bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
                     type="email"
                     value={testEmail}
                     onChange={e => setTestEmail(e.target.value)}
                     placeholder="tu-correo@ejemplo.com"
-                    style={{ flex: 1 }}
                   />
                   <button
-                    className="btn-secondary"
+                    type="button"
+                    className="px-4 py-2 rounded-xl bg-white/[0.06] border border-white/[0.1] text-xs font-semibold text-white hover:bg-white/[0.1] transition-all flex items-center gap-1.5 disabled:opacity-50"
                     onClick={handleSendTest}
                     disabled={sendingTest || !testEmail}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}
                   >
-                    <Send size={14} /> {sendingTest ? 'Enviando...' : 'Probar'}
+                    <Send className="w-3.5 h-3.5" /> {sendingTest ? 'Enviando...' : 'Probar'}
                   </button>
                 </div>
               </div>
 
               {/* Botón Masivo */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
                 <div>
-                  <div style={{ fontWeight: 600, color: '#f3f4f6' }}>
-                    Audiencia: {currentAudienceInfo?.label}
+                  <div className="text-sm font-semibold text-white">
+                    Audiencia: {currentAudienceInfo?.label || 'Todos'}
                   </div>
-                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                    {currentAudienceInfo?.count || 0} destinatario(s) recibirán este correo
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {currentAudienceInfo?.count || 0} destinatario(s) elegible(s) para este envío
                   </div>
                 </div>
 
                 <button
-                  className="btn-primary"
+                  type="button"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                   onClick={handleSendCampaign}
                   disabled={sendingCampaign || (currentAudienceInfo?.count || 0) === 0}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px', fontSize: '0.95rem' }}
                 >
-                  <Send size={16} /> {sendingCampaign ? 'Enviando Campaña...' : `Enviar a ${currentAudienceInfo?.count || 0} Clientes`}
+                  <Send className="w-4 h-4" /> {sendingCampaign ? 'Enviando Campaña...' : `Enviar a ${currentAudienceInfo?.count || 0} Clientes`}
                 </button>
               </div>
             </div>
 
           </div>
 
-          {/* Columna Derecha: Vista Previa en Vivo (Live Preview) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: '#f3f4f6' }}>
-                <Eye size={18} className="text-accent" /> Vista Previa en Vivo
+          {/* Right Column: Live Preview */}
+          <div className="lg:col-span-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Eye className="w-4 h-4 text-amber-500" />
+                <span>Vista Previa en Tiempo Real</span>
               </div>
-              <span className="text-muted" style={{ fontSize: '0.8rem' }}>Renderizado HTML responsivo</span>
+              <span className="text-xs text-slate-400">Renderizado responsivo</span>
             </div>
 
-            <div style={{
-              background: '#0b0f19',
-              border: '1px solid #1f2937',
-              borderRadius: 12,
-              overflow: 'hidden',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-              minHeight: '480px'
-            }}>
+            <div className="bg-[#0b0f19] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
               {previewHtml ? (
                 <iframe
                   title="Email Preview"
                   srcDoc={previewHtml}
-                  style={{
-                    width: '100%',
-                    height: '620px',
-                    border: 'none',
-                    background: '#0b0f19'
-                  }}
+                  className="w-full h-[640px] border-none bg-[#0b0f19]"
                 />
               ) : (
-                <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+                <div className="p-12 text-center text-slate-400 text-sm">
                   Generando vista previa...
                 </div>
               )}
             </div>
           </div>
-
         </div>
       ) : (
         /* Historial de Campañas */
-        <div className="card">
-          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <History size={18} className="text-accent" /> Historial de Campañas Realizadas
+        <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
+          <div className="flex items-center gap-2 text-base font-semibold text-white mb-4">
+            <History className="w-4 h-4 text-amber-500" />
+            <span>Registro Histórico de Campañas</span>
           </div>
 
           {campaigns.length === 0 ? (
-            <div className="no-data">No se han registrado envíos de campañas aún</div>
+            <div className="py-12 text-center text-slate-400 text-sm">
+              No se han registrado envíos de campañas aún
+            </div>
           ) : (
-            <div className="table-wrapper">
-              <table className="data-table">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
                 <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Título & Asunto</th>
-                    <th>Audiencia</th>
-                    <th>Destinatarios</th>
-                    <th>Estado</th>
-                    <th>Proveedor</th>
+                  <tr className="border-b border-white/[0.08] text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="pb-3 px-4">Fecha</th>
+                    <th className="pb-3 px-4">Título & Asunto</th>
+                    <th className="pb-3 px-4">Audiencia</th>
+                    <th className="pb-3 px-4">Destinatarios</th>
+                    <th className="pb-3 px-4">Estado</th>
+                    <th className="pb-3 px-4">Proveedor</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/[0.04]">
                   {campaigns.map(c => (
-                    <tr key={c.id}>
-                      <td className="text-muted" style={{ fontSize: '0.85rem' }}>
-                        {new Date(c.fecha_envio).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-4 text-xs text-slate-400">
+                        {new Date(c.fecha_envio).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: '#f3f4f6' }}>{c.titulo}</div>
-                        <div className="text-muted" style={{ fontSize: '0.8rem' }}>{c.asunto}</div>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-white">{c.titulo}</div>
+                        <div className="text-xs text-slate-400 truncate max-w-xs">{c.asunto}</div>
                       </td>
-                      <td>
-                        <span style={{ fontSize: '0.85rem', textTransform: 'capitalize' }}>
-                          {c.audiencia === 'all' ? 'Todos' : (c.audiencia === 'vip' ? 'VIP' : (c.audiencia === 'special_dates' ? 'Fechas Especiales' : c.audiencia))}
-                        </span>
+                      <td className="py-3 px-4 text-xs capitalize text-slate-300">
+                        {c.audiencia === 'all' ? 'Todos' : (c.audiencia === 'vip' ? 'VIP' : (c.audiencia === 'special_dates' ? 'Fechas Especiales' : c.audiencia))}
                       </td>
-                      <td style={{ fontWeight: 600, color: 'var(--text)' }}>
+                      <td className="py-3 px-4 font-semibold text-white">
                         {c.destinatarios_count}
                       </td>
-                      <td>
-                        <span style={{
-                          fontSize: '0.75rem',
-                          padding: '3px 8px',
-                          borderRadius: 12,
-                          background: c.estado === 'enviado' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                          color: c.estado === 'enviado' ? '#22c55e' : '#fbbf24',
-                          border: `1px solid ${c.estado === 'enviado' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
-                          textTransform: 'capitalize'
-                        }}>
+                      <td className="py-3 px-4">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border capitalize ${
+                          c.estado === 'enviado'
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                        }`}>
                           {c.estado}
                         </span>
                       </td>
-                      <td className="text-muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                      <td className="py-3 px-4 text-xs uppercase text-slate-400 font-mono">
                         {c.proveedor}
                       </td>
                     </tr>
