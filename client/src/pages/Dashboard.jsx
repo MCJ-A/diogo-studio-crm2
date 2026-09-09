@@ -73,27 +73,27 @@ function Dashboard() {
 
       <div className="kpi-grid">
         <KpiCard
-          icon={<Calendar size={28} className="text-info" />}
-          label="Reservas Agendadas"
-          value={kpis?.reservas_agendadas ?? 0}
+          icon={<Calendar size={22} className="text-info" />}
+          label="Reservas"
+          value={kpis?.bookings_today ?? kpis?.reservas_agendadas ?? 0}
           color="info"
         />
         <KpiCard
-          icon={<DollarSign size={28} className="text-accent" />}
-          label="Ingreso Total"
-          value={fmt(kpis?.ingreso_total)}
+          icon={<DollarSign size={22} className="text-accent" />}
+          label="Ingresos"
+          value={fmt(kpis?.weekly_revenue ?? kpis?.ingreso_total)}
           color="accent"
         />
         <KpiCard
-          icon={<Users size={28} className="text-success" />}
-          label="Clientes Activos"
-          value={kpis?.clientes_activos ?? 0}
+          icon={<Users size={22} className="text-success" />}
+          label="Clientes"
+          value={kpis?.active_clients ?? kpis?.clientes_activos ?? 0}
           color="success"
         />
         <KpiCard
-          icon={<AlertTriangle size={28} className={alerts.length > 0 ? "text-danger" : "text-success"} />}
-          label="Alertas Pendientes"
-          value={kpis?.alertas_pendientes ?? alerts.length}
+          icon={<AlertTriangle size={22} className={alerts.length > 0 ? "text-danger" : "text-success"} />}
+          label="Alertas"
+          value={kpis?.pending_alerts ?? kpis?.alertas_pendientes ?? alerts.length}
           color={alerts.length > 0 ? 'danger' : 'success'}
         />
       </div>

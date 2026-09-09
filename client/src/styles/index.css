@@ -180,12 +180,15 @@ img { max-width: 100%; display: block; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
   box-shadow: var(--shadow);
   transition: transform 0.2s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
 }
 
 .kpi-card:hover {
@@ -193,24 +196,44 @@ img { max-width: 100%; display: block; }
   border-color: var(--accent);
 }
 
-.kpi-icon {
-  font-size: 1.8rem;
-  line-height: 1;
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
+.kpi-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(45, 53, 72, 0.5);
+  border: 1px solid var(--border);
+}
+
+.kpi-icon-badge.accent { background: rgba(232,184,109,0.15); border-color: rgba(232,184,109,0.3); }
+.kpi-icon-badge.info { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); }
+.kpi-icon-badge.success { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); }
+.kpi-icon-badge.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); }
+
 .kpi-label {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
 }
 
 .kpi-value {
-  font-size: 1.9rem;
+  font-size: 1.85rem;
   font-weight: 800;
   color: var(--text-primary);
-  line-height: 1;
+  line-height: 1.1;
+  word-break: break-word;
 }
 
 .kpi-value.accent { color: var(--accent); }
@@ -1438,26 +1461,44 @@ img { max-width: 100%; display: block; }
   }
 
   .kpi-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 18px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px;
+    margin-bottom: 16px;
   }
 
   .kpi-card {
-    padding: 14px;
-    gap: 4px;
+    padding: 12px 14px;
+    gap: 6px;
+    border-radius: var(--radius-sm);
   }
 
-  .kpi-icon {
-    font-size: 1.4rem;
+  .kpi-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .kpi-icon-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+  }
+
+  .kpi-icon-badge svg {
+    width: 16px;
+    height: 16px;
   }
 
   .kpi-label {
     font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
   }
 
   .kpi-value {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
+    font-weight: 800;
   }
 
   .services-grid {
@@ -1473,7 +1514,34 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 480px) {
   .kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .kpi-card {
+    padding: 10px 12px;
+    gap: 4px;
+  }
+
+  .kpi-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.2px;
+  }
+
+  .kpi-value {
+    font-size: 1.25rem;
+  }
+
+  .kpi-icon-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
+  }
+
+  .kpi-icon-badge svg {
+    width: 14px;
+    height: 14px;
   }
 
   /* Modal bottom-sheet en pantallas muy pequeñas */
