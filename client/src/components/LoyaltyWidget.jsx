@@ -1,6 +1,6 @@
 import { Trophy, Medal, Award } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
 function getLoyaltyBadge(pct) {
   if (pct >= 20) return { icon: <Trophy size={14} />, label: 'Oro', cls: 'loyalty-oro' }

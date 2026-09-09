@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Calendar, DollarSign, Users, AlertTriangle, LayoutDashboard, XCircle } from 'lucide-react'
+import { Calendar, Euro, Users, AlertTriangle, LayoutDashboard, XCircle } from 'lucide-react'
 import KpiCard from '../components/KpiCard'
 import AlertsWidget from '../components/AlertsWidget'
 import LoyaltyWidget from '../components/LoyaltyWidget'
 import OpportunityWidget from '../components/OpportunityWidget'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
 function Dashboard() {
   const [kpis, setKpis] = useState(null)
@@ -79,7 +79,7 @@ function Dashboard() {
           color="info"
         />
         <KpiCard
-          icon={<DollarSign size={22} className="text-accent" />}
+          icon={<Euro size={22} className="text-accent" />}
           label="Ingresos"
           value={fmt(kpis?.weekly_revenue ?? kpis?.ingreso_total)}
           color="accent"

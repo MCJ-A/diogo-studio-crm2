@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, AlertTriangle, BellRing } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v)
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v)
 
 function AlertsWidget({ alerts = [] }) {
   const navigate = useNavigate()

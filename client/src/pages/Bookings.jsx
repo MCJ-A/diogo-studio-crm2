@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { Calendar, Users, Camera, Edit, MapPin, CheckCircle, Clock, Save, XCircle, ChevronRight, FileText, FileSignature, CheckSquare, MessageCircle, AlertTriangle } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0)
-const fmtDate = d => d ? new Date(d).toLocaleDateString('es-MX') : '—'
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmtDate = d => d ? new Date(d).toLocaleDateString('es-ES') : '—'
 
 const ESTADOS = ['', 'Agendada', 'Realizada', 'Seleccion_pendiente', 'En_edicion', 'Entregada', 'Cancelada']
 

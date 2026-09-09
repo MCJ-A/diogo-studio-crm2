@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { DollarSign, Save, XCircle, CreditCard, ChevronRight } from 'lucide-react'
+import { Euro, Save, XCircle, CreditCard, ChevronRight } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0)
-const fmtDate = d => d ? new Date(d).toLocaleDateString('es-MX') : '—'
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmtDate = d => d ? new Date(d).toLocaleDateString('es-ES') : '—'
 
 const ESTADOS_PAGO = ['Pendiente', 'Parcial', 'Pagado']
 
@@ -70,13 +70,13 @@ export default function Payments() {
         saldo_pendiente: saldo(),
         estado_pago: payData.estado_pago,
       }
-      const res = await fetch(`/api/payments/${selected.id_reserva}`, {
+      const res = await fetch(`/api/payments/${selected.id_reserva || selected.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
       if (!res.ok) {
-        const fallback = await fetch(`/api/bookings/${selected.id_reserva}/payment`, {
+        const fallback = await fetch(`/api/bookings/${selected.id_reserva || selected.id}/payment`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -105,7 +105,7 @@ export default function Payments() {
       <div className="page-header">
         <div>
           <div className="page-title" style={{display:'flex', alignItems:'center', gap:8}}>
-            <DollarSign size={24} className="text-accent" /> Finanzas
+            <Euro size={24} className="text-accent" /> Finanzas
           </div>
           <div className="page-subtitle">Gestión de pagos por reserva</div>
         </div>
@@ -214,7 +214,7 @@ export default function Payments() {
             <div className="card sticky" style={{ top: '24px' }}>
               <div className="modal-header" style={{marginBottom:16}}>
                 <div className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <DollarSign size={20} className="text-accent" /> Editar Pago
+                  <Euro size={20} className="text-accent" /> Editar Pago
                 </div>
                 <button className="modal-close" onClick={() => setSelected(null)}><XCircle size={20}/></button>
               </div>
@@ -225,7 +225,7 @@ export default function Payments() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Monto Bruto (MXN)</label>
+                <label className="form-label">Monto Bruto (€)</label>
                 <input type="number" className="form-input" value={payData.monto_bruto} onChange={e => setPayData({...payData, monto_bruto: e.target.value})} placeholder="0.00" />
               </div>
 

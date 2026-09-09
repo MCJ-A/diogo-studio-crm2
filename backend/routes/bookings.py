@@ -213,7 +213,7 @@ def change_status(id):
             ).fetchone()
             if payment and payment['saldo_pendiente'] > 0:
                 db.close()
-                return jsonify({"error": f"No se puede marcar como 'Entregada': hay saldo pendiente de ${payment['saldo_pendiente']:.2f}"}), 400
+                return jsonify({"error": f"No se puede marcar como 'Entregada': hay saldo pendiente de €{payment['saldo_pendiente']:.2f}"}), 400
 
         # Cancelada requiere razon_cancelacion o motivo_cancelacion
         if new_status == 'Cancelada':

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Camera, Edit, Save, XCircle, CheckCircle, Plus, Trash2, AlertTriangle, Power } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
 const EMPTY_SERVICE = { nombre: '', precio_base: '', entregables: '', activo: true }
 
@@ -231,7 +231,7 @@ export default function Services() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Precio Base (MXN)</label>
+                    <label className="form-label">Precio Base (€)</label>
                     <input
                       className="form-input"
                       type="number"
@@ -309,7 +309,7 @@ export default function Services() {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Precio Base (MXN) *</label>
+                <label className="form-label">Precio Base (€) *</label>
                 <input
                   type="number"
                   className="form-input"
