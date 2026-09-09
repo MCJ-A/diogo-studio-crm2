@@ -1303,12 +1303,6 @@ img { max-width: 100%; display: block; }
     --sidebar-width: 0px;
   }
 
-  .main-content {
-    margin-left: 0 !important;
-    padding: calc(var(--topbar-height, 56px) + 20px) 18px calc(var(--bottom-nav-height, 62px) + 36px) 18px !important;
-    min-height: 100vh;
-  }
-
   /* Utilidades de visibilidad */
   .desktop-only {
     display: none !important;
@@ -2557,14 +2551,8 @@ img { max-width: 100%; display: block; }
 .dashboard-luxury-container {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   width: 100%;
-}
-
-@media (max-width: 768px) {
-  .dashboard-luxury-container {
-    gap: 28px !important;
-  }
 }
 
 .dashboard-context-banner {
@@ -2574,21 +2562,6 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 4px;
-}
-
-@media (max-width: 768px) {
-  .dashboard-context-banner {
-    gap: 16px !important;
-    margin-bottom: 8px !important;
-  }
-  .dashboard-title {
-    font-size: 1.65rem !important;
-    line-height: 1.25;
-  }
-  .dashboard-subtitle {
-    margin-top: 6px !important;
-    line-height: 1.5;
-  }
 }
 
 .editorial-tag {
@@ -2663,7 +2636,8 @@ img { max-width: 100%; display: block; }
 .kpi-luxury-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
+  margin: 16px 0 24px 0;
 }
 
 @media (max-width: 1024px) {
@@ -2677,44 +2651,58 @@ img { max-width: 100%; display: block; }
   .kpi-luxury-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 14px !important;
+    margin: 12px 0 20px 0 !important;
   }
   .kpi-luxury-card {
     padding: 16px 14px !important;
-    min-height: 156px !important;
     gap: 10px !important;
     border-radius: 14px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
+    min-height: 154px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  }
+  .kpi-card-top {
+    margin-bottom: 4px !important;
   }
   .kpi-card-title {
     font-size: 0.72rem !important;
-    letter-spacing: 0.03em;
+    line-height: 1.25 !important;
+    letter-spacing: 0.04em !important;
   }
   .kpi-icon-box {
     width: 30px !important;
     height: 30px !important;
+    border-radius: 8px !important;
   }
   .kpi-icon-box svg {
-    width: 15px !important;
-    height: 15px !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+  .kpi-metric-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    margin: 4px 0 8px 0 !important;
   }
   .kpi-luxury-value {
-    font-size: 1.32rem !important;
-    line-height: 1.2;
+    font-size: 1.28rem !important;
+    line-height: 1.1 !important;
   }
   .kpi-trend-pill {
-    font-size: 0.66rem !important;
-    padding: 2px 5px !important;
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+    border-radius: 6px !important;
+  }
+  .progress-bar-bg {
+    margin: 6px 0 4px 0 !important;
+    height: 5px !important;
   }
   .kpi-card-footer {
-    font-size: 0.7rem !important;
+    font-size: 0.68rem !important;
     padding-top: 8px !important;
-    margin-top: 4px !important;
+    margin-top: auto !important;
     border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
     flex-wrap: wrap !important;
     gap: 3px !important;
   }
@@ -2724,13 +2712,23 @@ img { max-width: 100%; display: block; }
   background: #181C28;
   border: 1px solid rgba(232, 176, 114, 0.12);
   border-radius: 14px;
-  padding: 18px 20px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 12px;
+  min-height: 156px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kpi-metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .kpi-luxury-card:hover {

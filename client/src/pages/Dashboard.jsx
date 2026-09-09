@@ -101,7 +101,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div className="sync-badge">
             <Sparkles size={14} style={{ color: 'var(--accent-gold-bright)' }} />
             <span>Sincronizado</span>
@@ -116,8 +116,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. KPI Highlights Grid (2x2 on mobile, 4 columns on desktop) */}
-      <section className="kpi-luxury-grid grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
+      {/* 2. KPI Highlights Grid (2x2 on mobile, 4 columns on desktop with generous breathing space) */}
+      <section className="kpi-luxury-grid grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5 my-3 sm:my-6">
         
         {/* Card 1: Reservas */}
         <div className="kpi-luxury-card">
@@ -127,7 +127,7 @@ export default function Dashboard() {
               <Calendar size={18} />
             </div>
           </div>
-          <div style={{ marginTop: 14, marginBottom: 10, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div className="kpi-metric-row">
             <span className="kpi-luxury-value">{bookingsCount}</span>
             <span className="kpi-trend-pill gold">
               <ArrowUpRight size={12} /> +15% mes
@@ -146,13 +146,13 @@ export default function Dashboard() {
               <Euro size={18} />
             </div>
           </div>
-          <div style={{ marginTop: 14, marginBottom: 10, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div className="kpi-metric-row">
             <span className="kpi-luxury-value gold">{fmt(totalRevenue)}</span>
             <span className="kpi-trend-pill gold">
               <TrendingUp size={12} /> +22.4%
             </span>
           </div>
-          <div className="progress-bar-bg" style={{ margin: '8px 0 6px 0' }}>
+          <div className="progress-bar-bg">
             <div className="progress-bar-fill-gold" style={{ width: '82%' }} />
           </div>
           <div className="kpi-card-footer">
@@ -169,7 +169,7 @@ export default function Dashboard() {
               <Users size={18} />
             </div>
           </div>
-          <div style={{ marginTop: 14, marginBottom: 10, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div className="kpi-metric-row">
             <span className="kpi-luxury-value">{activeClientsCount}</span>
             <span className="kpi-trend-pill neutral">1 VIP • 3 Standard</span>
           </div>
@@ -187,7 +187,7 @@ export default function Dashboard() {
               <AlertTriangle size={18} />
             </div>
           </div>
-          <div style={{ marginTop: 14, marginBottom: 10, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div className="kpi-metric-row">
             <span className="kpi-luxury-value error">{criticalCount}</span>
             <span className="kpi-trend-pill error">Requerida</span>
           </div>
