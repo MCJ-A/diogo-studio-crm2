@@ -1,22 +1,96 @@
 import { useState, useEffect } from 'react'
-import { Camera, Edit, Save, XCircle, CheckCircle, Plus, Trash2, AlertTriangle, Power } from 'lucide-react'
+import { 
+  Camera, Edit, Save, XCircle, CheckCircle, Plus, Trash2, AlertTriangle, 
+  Power, Sparkles, Award, TrendingUp, Layers, Timer, Users, MapPin, 
+  BookOpen, Star, MoreVertical, Sliders, Check, Eye, PackagePlus
+} from 'lucide-react'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
-const EMPTY_SERVICE = { nombre: '', precio_base: '', entregables: '', activo: true }
+const EMPTY_SERVICE = { 
+  nombre: '', 
+  precio_base: '', 
+  entregables: '', 
+  categoria: 'bodas', 
+  activo: true,
+  destacado: false 
+}
+
+const CATEGORIES = [
+  { id: 'all', label: 'Todos los servicios' },
+  { id: 'bodas', label: 'Bodas & Parejas' },
+  { id: 'corporativo', label: 'Corporativo' },
+  { id: 'retrato', label: 'Retrato & Familia' }
+]
+
+function getCategoryFromService(s) {
+  const name = (s.nombre || '').toLowerCase()
+  if (name.includes('matrimoni') || name.includes('boda') || name.includes('pareja') || name.includes('novios')) return 'bodas'
+  if (name.includes('corporativ') || name.includes('b2b') || name.includes('comercial') || name.includes('empresa')) return 'corporativo'
+  return 'retrato'
+}
+
+function getCategoryLabel(cat) {
+  if (cat === 'bodas') return 'Bodas de Alta Gama'
+  if (cat === 'corporativo') return 'Comercial / B2B'
+  return 'Retrato Intimista'
+}
+
+function getServiceVisualMeta(s) {
+  const name = (s.nombre || '').toLowerCase()
+  if (name.includes('matrimoni') || name.includes('boda')) {
+    return {
+      tag: 'Álbum Encuadernado Incluido',
+      duration: 'Jornada Completa',
+      isPopular: true,
+      overline: 'Signature Atelier',
+      gradient: 'linear-gradient(135deg, rgba(232, 176, 114, 0.2) 0%, rgba(19, 27, 42, 0.9) 100%)'
+    }
+  }
+  if (name.includes('corporativ') || name.includes('b2b')) {
+    return {
+      tag: '2.5 Horas de toma',
+      duration: 'Uso Comercial',
+      isPopular: false,
+      overline: 'Comercial / B2B',
+      gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(19, 27, 42, 0.9) 100%)'
+    }
+  }
+  if (name.includes('familiar') || name.includes('familia')) {
+    return {
+      tag: 'Hasta 5 integrantes',
+      duration: '90 minutos',
+      isPopular: false,
+      overline: 'Retrato Intimista',
+      gradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(19, 27, 42, 0.9) 100%)'
+    }
+  }
+  return {
+    tag: '1 Locación exclusiva',
+    duration: '60 minutos',
+    isPopular: false,
+    overline: 'Editorial & Personal',
+    gradient: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(19, 27, 42, 0.9) 100%)'
+  }
+}
 
 export default function Services() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [newService, setNewService] = useState(EMPTY_SERVICE)
-  const [creating, setCreating] = useState(false)
-  const [editingId, setEditingId] = useState(null)
-  const [editData, setEditData] = useState({})
   const [successMsg, setSuccessMsg] = useState(null)
   
-  // Modals for deletion & conflict handling
+  // Filtering
+  const [selectedCategory, setSelectedCategory] = useState('all')
+
+  // Modals
+  const [showModal, setShowModal] = useState(false)
+  const [modalMode, setModalMode] = useState('create') // 'create' or 'edit'
+  const [serviceForm, setServiceForm] = useState(EMPTY_SERVICE)
+  const [creating, setCreating] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  
+  // Deletion & conflict handling
   const [serviceToDelete, setServiceToDelete] = useState(null)
   const [conflictModal, setConflictModal] = useState(null)
 
@@ -35,28 +109,72 @@ export default function Services() {
     }
   }
 
-  const handleCreate = async () => {
-    if (!newService.nombre || !newService.precio_base) return
+  const handleOpenCreate = () => {
+    setModalMode('create')
+    setServiceForm(EMPTY_SERVICE)
+    setShowModal(true)
+  }
+
+  const handleOpenEdit = (s) => {
+    const svcId = s.id || s.id_servicio
+    setEditingId(svcId)
+    setModalMode('edit')
+    setServiceForm({
+      nombre: s.nombre,
+      precio_base: s.precio_base,
+      entregables: s.entregables_detalle || s.entregables || '',
+      categoria: getCategoryFromService(s),
+      activo: !!s.activo,
+      destacado: !!s.destacado
+    })
+    setShowModal(true)
+  }
+
+  const handleFormSubmit = async (e) => {
+    if (e) e.preventDefault()
+    if (!serviceForm.nombre || !serviceForm.precio_base) return
     setCreating(true)
+    setError(null)
+
     try {
-      const res = await fetch('/api/services', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: newService.nombre.trim(),
-          precio_base: parseFloat(newService.precio_base) || 0,
-          entregables_detalle: newService.entregables.trim(),
-          activo: !!newService.activo,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Error al crear servicio')
-      
-      const created = data.service || data
-      setServices(prev => [...prev, created])
-      setNewService(EMPTY_SERVICE)
+      if (modalMode === 'create') {
+        const res = await fetch('/api/services', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: serviceForm.nombre.trim(),
+            precio_base: parseFloat(serviceForm.precio_base) || 0,
+            entregables_detalle: serviceForm.entregables.trim(),
+            activo: !!serviceForm.activo,
+          }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Error al crear servicio')
+        
+        const created = data.service || data
+        setServices(prev => [...prev, created])
+        setSuccessMsg(`Servicio "${created.nombre}" creado exitosamente`)
+      } else {
+        const res = await fetch(`/api/services/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: serviceForm.nombre.trim(),
+            precio_base: parseFloat(serviceForm.precio_base) || 0,
+            entregables_detalle: serviceForm.entregables.trim(),
+            activo: !!serviceForm.activo,
+          }),
+        })
+        const updated = await res.json()
+        if (!res.ok) throw new Error(updated.error || 'Error al guardar cambios')
+
+        setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === editingId ? updated : sv))
+        setSuccessMsg(`Servicio "${updated.nombre}" actualizado correctamente`)
+      }
+
       setShowModal(false)
-      setSuccessMsg(`Servicio "${created.nombre}" creado exitosamente`)
+      setServiceForm(EMPTY_SERVICE)
+      setEditingId(null)
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
       setError(err.message)
@@ -76,42 +194,8 @@ export default function Services() {
       if (!res.ok) throw new Error(data.error || 'Error al actualizar estado')
       
       setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === svcId ? { ...sv, activo: data.activo } : sv))
-      setSuccessMsg(`Servicio "${s.nombre}" ${data.activo ? 'activado' : 'desactivado'}`)
+      setSuccessMsg(`Servicio "${s.nombre}" ${data.activo ? 'activado' : 'pausado'}`)
       setTimeout(() => setSuccessMsg(null), 2500)
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const handleEdit = (s) => {
-    const svcId = s.id || s.id_servicio
-    setEditingId(svcId)
-    setEditData({
-      nombre: s.nombre,
-      precio_base: s.precio_base,
-      entregables: s.entregables_detalle || s.entregables || ''
-    })
-  }
-
-  const handleSaveEdit = async (s) => {
-    const svcId = s.id || s.id_servicio
-    try {
-      const res = await fetch(`/api/services/${svcId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nombre: editData.nombre || s.nombre,
-          precio_base: parseFloat(editData.precio_base) || 0,
-          entregables_detalle: editData.entregables,
-        }),
-      })
-      const updated = await res.json()
-      if (!res.ok) throw new Error(updated.error || 'Error al guardar cambios')
-
-      setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === svcId ? updated : sv))
-      setEditingId(null)
-      setSuccessMsg(`Servicio "${updated.nombre}" actualizado`)
-      setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
       setError(err.message)
     }
@@ -133,7 +217,6 @@ export default function Services() {
       const data = await res.json()
 
       if (res.status === 409) {
-        // Tiene reservas asociadas
         setConflictModal({
           service: s,
           message: data.error,
@@ -163,192 +246,450 @@ export default function Services() {
     }
   }
 
+  // Métricas
+  const totalRegistrados = services.length
+  const activosCount = services.filter(s => !!s.activo).length
+  const ticketPromedio = totalRegistrados > 0 
+    ? services.reduce((acc, s) => acc + (parseFloat(s.precio_base) || 0), 0) / totalRegistrados 
+    : 0
+
+  // Filtrado de servicios
+  const filteredServices = services.filter(s => {
+    if (selectedCategory === 'all') return true
+    const cat = getCategoryFromService(s)
+    return cat === selectedCategory
+  })
+
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
 
   return (
-    <div>
-      <div className="page-header">
-        <div>
-          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Camera size={24} className="text-accent" /> Servicios
+    <div className="services-page" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      
+      {/* Top Command & Action Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 34, height: 34, borderRadius: 8, background: '#282a30',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b072',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+            }}>
+              <Camera size={20} />
+            </div>
+            <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
+              Servicios
+            </h1>
           </div>
-          <div className="page-subtitle">Catálogo de paquetes fotográficos y entregables</div>
+          <p style={{ margin: 0, color: '#94A3B8', fontSize: '0.88rem' }}>
+            Catálogo exclusivo de paquetes fotográficos, coberturas y entregables de alta gama
+          </p>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Plus size={16} /> Nuevo Servicio
+
+        {/* Action CTA */}
+        <button
+          onClick={handleOpenCreate}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 18px', background: '#e8b072', color: '#482900',
+            border: 'none', borderRadius: 10, fontSize: '0.88rem', fontWeight: 700,
+            cursor: 'pointer', boxShadow: '0 4px 24px rgba(232,176,114,0.25)',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <Plus size={18} /> Nuevo Servicio
         </button>
       </div>
 
-      {error && (
-        <div className="alert-danger-card" style={{ marginBottom: 16 }}>
-          <AlertTriangle size={18} className="text-danger" style={{ flexShrink: 0 }} />
-          <div>{error}</div>
-        </div>
-      )}
-
+      {error && <div className="alert-danger-card">{error}</div>}
       {successMsg && (
         <div style={{
-          background: 'rgba(34,197,94,0.1)',
-          border: '1px solid rgba(34,197,94,0.3)',
-          borderRadius: 8,
-          padding: '12px 16px',
-          marginBottom: 16,
-          color: 'var(--success)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8
+          background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)',
+          borderRadius: 8, padding: '12px 16px', color: '#4ade80',
+          display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500
         }}>
           <CheckCircle size={18} /> {successMsg}
         </div>
       )}
 
-      <div className="services-grid">
-        {services.length === 0 ? (
-          <div className="no-data" style={{ gridColumn: '1/-1' }}>Sin servicios registrados</div>
-        ) : services.map(s => {
-          const svcId = s.id || s.id_servicio
-          const isEditing = editingId === svcId
-          const entregables = s.entregables_detalle || s.entregables || ''
-
-          return (
-            <div key={svcId} className={`service-card${!s.activo ? ' inactive' : ''}`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div className="service-name">{s.nombre}</div>
-                <label className="toggle-switch" title={s.activo ? 'Desactivar servicio' : 'Activar servicio'}>
-                  <input type="checkbox" checked={!!s.activo} onChange={() => handleToggle(s)} />
-                  <span className="toggle-slider" />
-                </label>
-              </div>
-
-              {isEditing ? (
-                <>
-                  <div className="form-group" style={{ marginTop: '12px' }}>
-                    <label className="form-label">Nombre del Servicio</label>
-                    <input
-                      className="form-input"
-                      value={editData.nombre || ''}
-                      onChange={e => setEditData({ ...editData, nombre: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Precio Base (€)</label>
-                    <input
-                      className="form-input"
-                      type="number"
-                      value={editData.precio_base}
-                      onChange={e => setEditData({ ...editData, precio_base: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Entregables y Detalles</label>
-                    <textarea
-                      className="form-textarea"
-                      rows={3}
-                      value={editData.entregables}
-                      onChange={e => setEditData({ ...editData, entregables: e.target.value })}
-                      placeholder="Ej: 30 fotos editadas, galería web en alta resolución..."
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: 8, marginTop: '8px' }}>
-                    <button className="btn-secondary btn-sm" onClick={() => setEditingId(null)} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <XCircle size={14} /> Cancelar
-                    </button>
-                    <button className="btn-primary btn-sm" onClick={() => handleSaveEdit(s)} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Save size={14} /> Guardar
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="service-price">{fmt(s.precio_base)}</div>
-                  {entregables && <div className="service-deliverables">{entregables}</div>}
-                  
-                  <div className="service-footer" style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', color: s.activo ? 'var(--success)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {s.activo ? <><CheckCircle size={14} /> Activo</> : <><XCircle size={14} /> Inactivo</>}
-                    </span>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button className="btn-secondary btn-sm" onClick={() => handleEdit(s)} style={{ display: 'flex', alignItems: 'center', gap: 4 }} title="Editar servicio">
-                        <Edit size={14} /> Editar
-                      </button>
-                      <button 
-                        className="btn-danger-outline btn-sm" 
-                        onClick={() => handleDeleteClick(s)} 
-                        style={{ display: 'flex', alignItems: 'center', gap: 4 }} 
-                        title="Eliminar o desactivar servicio"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
+      {/* Studio Performance Strip (4 KPI Cards) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+        
+        <div style={{
+          background: '#191b22', borderRadius: 12, padding: 16, border: '1px solid #282f42',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Servicios Activos</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4 }}>
+              <span style={{ fontSize: '1.4rem', fontWeight: 700, color: '#F8FAFC' }}>{activosCount}</span>
+              <span style={{ fontSize: '0.8rem', color: '#64748B' }}>/ {totalRegistrados} registrados</span>
             </div>
-          )
-        })}
+          </div>
+          <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffcd99' }}>
+            <Layers size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: '#191b22', borderRadius: 12, padding: 16, border: '1px solid #282f42',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Top Atelier</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F5B955', marginTop: 4 }}>Matrimonial</span>
+          </div>
+          <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F5B955' }}>
+            <Award size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: '#191b22', borderRadius: 12, padding: 16, border: '1px solid #282f42',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Ticket Promedio</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC', marginTop: 4 }}>{fmt(ticketPromedio)}</span>
+          </div>
+          <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bcc7de' }}>
+            <TrendingUp size={20} />
+          </div>
+        </div>
+
+        <div style={{
+          background: '#191b22', borderRadius: 12, padding: 16, border: '1px solid #282f42',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingRight: 8 }}>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Tasa de Conversión</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
+              <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC' }}>68.4%</span>
+              <span style={{ fontSize: '0.75rem', color: '#e8b072', fontWeight: 600 }}>óptima</span>
+            </div>
+            <div style={{ width: '100%', height: 4, background: '#282a30', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+              <div style={{ width: '68.4%', height: '100%', background: '#e8b072', borderRadius: 2 }} />
+            </div>
+          </div>
+          <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#adddff' }}>
+            <Sparkles size={20} />
+          </div>
+        </div>
+
       </div>
 
-      {/* Modal Nuevo Servicio */}
+      {/* Filter & Segment Bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12, background: '#191b22', padding: 10, borderRadius: 12, border: '1px solid #282f42'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto' }}>
+          {CATEGORIES.map(cat => {
+            const isActive = selectedCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                style={{
+                  padding: '6px 14px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600,
+                  border: 'none', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+                  background: isActive ? '#e8b072' : 'transparent',
+                  color: isActive ? '#482900' : '#94A3B8'
+                }}
+              >
+                {cat.label} {cat.id === 'all' ? `(${services.length})` : ''}
+              </button>
+            )
+          })}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748B', fontSize: '0.8rem' }}>
+          <Eye size={15} />
+          <span>Vista de Catálogo Haute Atelier</span>
+        </div>
+      </div>
+
+      {/* Services Grid (Haute Atelier Cards) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
+        {filteredServices.length === 0 ? (
+          <div className="no-data" style={{ gridColumn: '1/-1', padding: 40, textAlign: 'center' }}>
+            No se encontraron paquetes en esta categoría.
+          </div>
+        ) : (
+          filteredServices.map(s => {
+            const svcId = s.id || s.id_servicio
+            const meta = getServiceVisualMeta(s)
+            const entregables = s.entregables_detalle || s.entregables || ''
+            const itemsList = entregables.split('\n').filter(Boolean)
+
+            return (
+              <article
+                key={svcId}
+                style={{
+                  background: '#191b22', borderRadius: 14, padding: 20,
+                  border: meta.isPopular ? '1px solid rgba(245, 185, 85, 0.4)' : '1px solid #282f42',
+                  boxShadow: meta.isPopular ? '0 16px 48px rgba(0,0,0,0.8), 0 0 20px rgba(232,176,114,0.1)' : '0 12px 36px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                  position: 'relative', overflow: 'hidden', opacity: s.activo ? 1 : 0.65,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {/* Gold overline glow for signature */}
+                {meta.isPopular && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: 24, right: 24, height: 2,
+                    background: 'linear-gradient(90deg, transparent 0%, #F5B955 50%, transparent 100%)',
+                    boxShadow: '0 0 10px #F5B955'
+                  }} />
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  
+                  {/* Card Header: Category Tag & Active Toggle Switch */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {meta.isPopular ? (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 4,
+                          padding: '2px 8px', borderRadius: 20, background: '#e8b072',
+                          color: '#482900', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase'
+                        }}>
+                          <Star size={12} fill="#482900" /> Signature
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                          {meta.overline}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Interactive Toggle Switch */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }} title={s.activo ? 'Desactivar paquete' : 'Activar paquete'}>
+                      <input
+                        type="checkbox"
+                        checked={!!s.activo}
+                        onChange={() => handleToggle(s)}
+                        style={{ width: 16, height: 16, accentColor: '#e8b072', cursor: 'pointer' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: s.activo ? '#4ade80' : '#64748B', fontWeight: 600 }}>
+                        {s.activo ? 'Activo' : 'Pausado'}
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Title & Price */}
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#F8FAFC' }}>
+                      {s.nombre}
+                    </h2>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4 }}>
+                      <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#F5B955' }}>
+                        {fmt(s.precio_base)}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', color: '#64748B', textTransform: 'uppercase' }}>EUR</span>
+                    </div>
+                  </div>
+
+                  {/* Visual Strip / Preview Box */}
+                  <div style={{
+                    width: '100%', height: 90, borderRadius: 8, background: meta.gradient,
+                    display: 'flex', alignItems: 'flex-end', padding: 10, position: 'relative',
+                    border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden'
+                  }}>
+                    <span style={{
+                      padding: '3px 8px', borderRadius: 4, background: 'rgba(11, 13, 19, 0.85)',
+                      backdropFilter: 'blur(4px)', color: '#F8FAFC', fontSize: '0.72rem', fontWeight: 600,
+                      display: 'flex', alignItems: 'center', gap: 4
+                    }}>
+                      <Timer size={12} style={{ color: '#e8b072' }} /> {meta.tag}
+                    </span>
+                  </div>
+
+                  {/* Deliverables Checklist */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 4 }}>
+                    {itemsList.length > 0 ? (
+                      itemsList.map((item, idx) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: '0.82rem', color: '#cbd5e1' }}>
+                          <CheckCircle size={15} style={{ color: '#F5B955', flexShrink: 0, marginTop: 2 }} />
+                          <span>{item}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ fontSize: '0.82rem', color: '#94A3B8' }}>
+                        Cobertura fotográfica profesional de estudio y galería digital de entrega.
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Card Footer Actions */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  marginTop: 20, paddingTop: 14, borderTop: '1px solid #282f42'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.activo ? '#4ade80' : '#64748B' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: s.activo ? '#4ade80' : '#64748B' }}>
+                      {s.activo ? 'En Catálogo' : 'Pausado'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      onClick={() => handleOpenEdit(s)}
+                      style={{
+                        padding: '6px 12px', borderRadius: 6, background: '#282a30',
+                        border: 'none', color: '#F8FAFC', fontSize: '0.8rem', fontWeight: 600,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
+                      }}
+                    >
+                      <Edit size={13} /> Editar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(s)}
+                      style={{
+                        padding: '6px 8px', borderRadius: 6, background: '#282a30',
+                        border: 'none', color: '#ffb4ab', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                      title="Eliminar o pausar servicio"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+
+              </article>
+            )
+          })
+        )}
+      </div>
+
+      {/* Bottom Add-on Upsell Ledger */}
+      <div style={{
+        background: '#191b22', borderRadius: 14, padding: 22, border: '1px solid #282f42',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, background: '#282a30',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b072', flexShrink: 0
+          }}>
+            <PackagePlus size={24} />
+          </div>
+          <div>
+            <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC', display: 'block' }}>
+              ¿Deseas ofrecer servicios adicionales?
+            </span>
+            <span style={{ color: '#94A3B8', fontSize: '0.85rem' }}>
+              Configura complementos como horas extra de cobertura, retocado express en 24h, o impresiones en papel Fine Art de algodón.
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleOpenCreate}
+          style={{
+            padding: '8px 16px', background: '#282a30', color: '#e8b072',
+            border: '1px solid rgba(232, 176, 114, 0.3)', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          + Crear Complemento
+        </button>
+      </div>
+
+      {/* Modal: Configurar Paquete Fotográfico (Nuevo / Editar) */}
       {showModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{ maxWidth: 540 }}>
             <div className="modal-header">
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <Camera size={20} className="text-accent" /> Nuevo Paquete Fotográfico
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Camera size={20} className="text-accent" />
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#F8FAFC' }}>
+                  {modalMode === 'create' ? 'Configurar Nuevo Paquete' : `Editar: ${serviceForm.nombre}`}
+                </h3>
+              </div>
               <button className="modal-close" onClick={() => setShowModal(false)}><XCircle size={20} /></button>
             </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Nombre del Servicio *</label>
-                <input
-                  className="form-input"
-                  value={newService.nombre}
-                  onChange={e => setNewService({ ...newService, nombre: e.target.value })}
-                  placeholder="Ej: Sesión Newborn / Recién Nacido"
-                />
+
+            <form onSubmit={handleFormSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">Nombre del Paquete / Servicio *</label>
+                  <input
+                    className="form-input"
+                    value={serviceForm.nombre}
+                    onChange={e => setServiceForm({ ...serviceForm, nombre: e.target.value })}
+                    placeholder="Ej. Sesión Editorial de Moda"
+                    required
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Precio (€) *</label>
+                    <input
+                      type="number"
+                      step="any"
+                      className="form-input"
+                      value={serviceForm.precio_base}
+                      onChange={e => setServiceForm({ ...serviceForm, precio_base: e.target.value })}
+                      placeholder="2500.00"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Categoría</label>
+                    <select
+                      className="form-select"
+                      value={serviceForm.categoria}
+                      onChange={e => setServiceForm({ ...serviceForm, categoria: e.target.value })}
+                    >
+                      <option value="bodas">Bodas & Parejas</option>
+                      <option value="corporativo">Corporativo / B2B</option>
+                      <option value="retrato">Retrato & Familia</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Entregables y Cobertura (1 por línea)</label>
+                  <textarea
+                    className="form-textarea"
+                    rows={4}
+                    value={serviceForm.entregables}
+                    onChange={e => setServiceForm({ ...serviceForm, entregables: e.target.value })}
+                    placeholder="30 fotos editadas en alta resolución&#10;Álbum artesanal encuadernado&#10;2 fotógrafos simultáneos"
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={serviceForm.activo}
+                      onChange={e => setServiceForm({ ...serviceForm, activo: e.target.checked })}
+                      style={{ width: 16, height: 16, accentColor: '#e8b072' }}
+                    />
+                    <span style={{ fontSize: '0.85rem', color: '#F8FAFC' }}>Disponible en catálogo público</span>
+                  </label>
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Precio Base (€) *</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  value={newService.precio_base}
-                  onChange={e => setNewService({ ...newService, precio_base: e.target.value })}
-                  placeholder="2500"
-                />
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={creating || !serviceForm.nombre.trim() || !serviceForm.precio_base}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                >
+                  <CheckCircle size={16} /> {creating ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
               </div>
-              <div className="form-group">
-                <label className="form-label">Entregables y Cobertura</label>
-                <textarea
-                  className="form-textarea"
-                  rows={3}
-                  value={newService.entregables}
-                  onChange={e => setNewService({ ...newService, entregables: e.target.value })}
-                  placeholder="Ej: 30 fotos editadas en alta resolución, galería privada en línea, 2 cambios de vestuario..."
-                />
-              </div>
-              <div className="checkbox-group" style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="checkbox"
-                  id="nuevo-activo"
-                  checked={newService.activo}
-                  onChange={e => setNewService({ ...newService, activo: e.target.checked })}
-                />
-                <label htmlFor="nuevo-activo" style={{ cursor: 'pointer', fontSize: '0.9rem' }}>Servicio activo de inmediato</label>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
-              <button
-                className="btn-primary"
-                disabled={creating || !newService.nombre.trim() || !newService.precio_base}
-                onClick={handleCreate}
-                style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-              >
-                <CheckCircle size={16} /> {creating ? 'Guardando...' : 'Crear Servicio'}
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -356,7 +697,7 @@ export default function Services() {
       {/* Modal Confirmación de Eliminación Normal */}
       {serviceToDelete && !conflictModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '440px' }}>
+          <div className="modal-content" style={{ maxWidth: 440 }}>
             <div className="modal-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, color: 'var(--danger)' }}>
                 <Trash2 size={20} /> Eliminar Paquete
@@ -368,7 +709,7 @@ export default function Services() {
                 ¿Estás seguro de que deseas eliminar el paquete <strong>"{serviceToDelete.nombre}"</strong>?
               </p>
               <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-                Si el servicio cuenta con reservas pasadas, el sistema te ofrecerá desactivarlo para mantener íntegro tu historial financiero.
+                Si el servicio cuenta con reservas previas, podrás desactivarlo de inmediato para conservar tu historial contable.
               </p>
             </div>
             <div className="modal-footer">
@@ -388,7 +729,7 @@ export default function Services() {
       {/* Modal Conflicto por Reservas Existentes -> Opción Desactivar */}
       {conflictModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '480px' }}>
+          <div className="modal-content" style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, color: '#f59e0b' }}>
                 <AlertTriangle size={20} /> Reservas Asociadas Detectadas
@@ -405,12 +746,10 @@ export default function Services() {
                 fontSize: '0.9rem',
                 color: '#fbbf24'
               }}>
-                El paquete <strong>"{conflictModal.service.nombre}"</strong> tiene <strong>{conflictModal.count} reserva(s)</strong> registradas en el historial.
+                El paquete <strong>"{conflictModal.service.nombre}"</strong> tiene <strong>{conflictModal.count} reserva(s)</strong> asociadas en el historial.
               </div>
-              <p style={{ fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>
-                Para evitar inconsistencias en el historial de sesiones y pagos, no se puede borrar permanentemente de la base de datos.
-                <br /><br />
-                <strong>Solución recomendada:</strong> Desactivar el servicio. De esta forma tus reservas anteriores se conservan intactas pero ya no aparecerá disponible para nuevas reservas.
+              <p style={{ fontSize: '0.88rem', lineHeight: '1.5', margin: 0, color: '#cbd5e1' }}>
+                Para evitar inconsistencias en facturación y entregables, se recomienda desactivar el servicio en vez de eliminarlo.
               </p>
             </div>
             <div className="modal-footer">
@@ -420,12 +759,13 @@ export default function Services() {
                 onClick={() => confirmDelete(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <Power size={16} /> Desactivar Servicio
+                <Power size={16} /> Pausar Servicio
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }
