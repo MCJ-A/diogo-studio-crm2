@@ -3,7 +3,8 @@ import {
   Calendar, Users, Camera, Edit, MapPin, CheckCircle, Clock, Save, 
   XCircle, ChevronRight, FileText, FileSignature, CheckSquare, 
   MessageCircle, AlertTriangle, Plus, Printer, ExternalLink, 
-  Sparkles, DollarSign, ArrowRight, ShieldCheck, PhoneCall
+  Sparkles, DollarSign, ArrowRight, ShieldCheck, PhoneCall,
+  PackageCheck, RefreshCw, Download, Send, Layers, Image as ImageIcon
 } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 
@@ -18,7 +19,7 @@ const ESTADOS = [
   { id: '', label: 'Todos los estados' },
   { id: 'Agendada', label: 'Agendada' },
   { id: 'Realizada', label: 'Realizada' },
-  { id: 'Seleccion_pendiente', label: 'Selección Pendiente' },
+  { id: 'Seleccion_pendiente', label: 'Selección' },
   { id: 'En_edicion', label: 'En Edición' },
   { id: 'Entregada', label: 'Entregada' },
   { id: 'Cancelada', label: 'Cancelada' }
@@ -35,6 +36,10 @@ const PIPELINE_STEPS = [
 const EMPTY_BOOKING = {
   id_cliente: '', id_servicio: '', fecha_sesion: '', ubicacion: '',
   contrato_firmado: false, notas_internas: ''
+}
+
+const getInitials = (name = '') => {
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'DS'
 }
 
 export default function Bookings() {
@@ -168,129 +173,230 @@ export default function Bookings() {
     }
   }
 
-  // Métricas rápidas
+  const exportCSV = () => {
+    if (bookings.length === 0) return
+    const headers = ['ID Reserva', 'Cliente', 'WhatsApp', 'Servicio', 'Fecha Sesión', 'Ubicación', 'Estado', 'Monto', 'Contrato Firmado']
+    const rows = bookings.map(b => [
+      `"#RES-${b.id_reserva || b.id}"`,
+      `"${b.nombre_cliente || b.cliente_nombre || ''}"`,
+      `"${b.telefono_cliente || b.cliente_telefono || ''}"`,
+      `"${b.nombre_servicio || b.servicio_nombre || ''}"`,
+      b.fecha_sesion || '',
+      `"${b.ubicacion || 'Estudio Central'}"`,
+      b.estado || 'Agendada',
+      b.monto_bruto || 0,
+      b.contrato_firmado ? 'SÍ' : 'NO'
+    ])
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `reservas_diogo_atelier_${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Métricas
   const activasCount = bookings.filter(b => ['Agendada', 'Realizada', 'Seleccion_pendiente', 'En_edicion'].includes(b.estado)).length
   const porEntregarCount = bookings.filter(b => b.estado === 'En_edicion').length
-  const completadasCount = bookings.filter(b => b.estado === 'Entregada').length
+  const agendadasCount = bookings.filter(b => b.estado === 'Agendada').length
+  const entregadasCount = bookings.filter(b => b.estado === 'Entregada').length
 
   const filtered = bookings.filter(b => {
     const matchesEstado = filterEstado ? b.estado?.toLowerCase() === filterEstado.toLowerCase() : true
-    const term = searchTerm.toLowerCase()
-    const matchesSearch = term ? (
+    const term = searchTerm.toLowerCase().trim()
+    const matchesSearch = !term || (
       (b.nombre_cliente || b.cliente_nombre || '').toLowerCase().includes(term) ||
       (b.nombre_servicio || b.servicio_nombre || '').toLowerCase().includes(term) ||
       (b.ubicacion || '').toLowerCase().includes(term)
-    ) : true
+    )
     return matchesEstado && matchesSearch
   })
-
-  const getInitials = (name = '') => {
-    return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'DS'
-  }
 
   const getWhatsAppReminderUrl = (booking) => {
     const phone = (booking?.telefono_cliente || booking?.cliente_telefono || '').replace(/\D/g, '')
     const clientName = (booking?.nombre_cliente || booking?.cliente_nombre || 'Estimado/a').split(' ')[0]
     const dateStr = fmtDate(booking?.fecha_sesion)
     const serviceName = booking?.nombre_servicio || booking?.servicio_nombre || 'tu sesión'
-    const msg = encodeURIComponent(`¡Hola ${clientName}! 👋 Te saludamos de Diogo Studio. Recordatorio de tu sesión de fotos (${serviceName}) programada para el ${dateStr}. ¿Todo listo para tu experiencia fotográfica? ✨`)
+    const msg = encodeURIComponent(`¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio de tu sesión fotográfica (${serviceName}) programada para el ${dateStr}. ¿Todo listo para tu experiencia en el atelier? 📸`)
     return phone ? `https://wa.me/${phone}?text=${msg}` : null
   }
 
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
 
+  // Primer elemento activo si no hay seleccionado
+  const activeFocusBooking = selected || (bookings.length > 0 ? bookings[0] : null)
+
   return (
-    <div className="bookings-page">
-      {/* Cabecera Haute Atelier */}
-      <div className="page-header" style={{ marginBottom: 20 }}>
-        <div>
-          <div className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Calendar size={26} className="text-accent" /> Reservas
-          </div>
-          <div className="page-subtitle">
-            Gestiona tu agenda de sesiones fotográficas, producción y entregas
-          </div>
-          
-          {/* Quick Metrics Badges */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(232, 184, 109, 0.12)', border: '1px solid rgba(232, 184, 109, 0.3)',
-              color: '#e8b86d', padding: '4px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e8b86d', boxShadow: '0 0 6px #e8b86d' }} />
-              Activas: {activasCount}
-            </span>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)',
-              color: '#60a5fa', padding: '4px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600
-            }}>
-              <Clock size={12} /> Por Entregar: {porEntregarCount}
-            </span>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              background: 'rgba(34, 197, 94, 0.12)', border: '1px solid rgba(34, 197, 94, 0.3)',
-              color: '#4ade80', padding: '4px 12px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600
-            }}>
-              <CheckCircle size={12} /> Entregadas: {completadasCount}
-            </span>
-          </div>
+    <div className="bookings-page" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      
+      {/* Top Header & Season Bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 12
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
+            Reservas
+          </h1>
+          <span style={{
+            fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em',
+            padding: '3px 10px', borderRadius: 20, background: '#282a30',
+            color: '#e8b072', fontWeight: 700
+          }}>
+            Atelier 2024
+          </span>
         </div>
 
         <button 
-          className="btn-primary" 
           onClick={() => setShowModal(true)} 
-          style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px' }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '8px 16px', background: '#e8b072', color: '#482900',
+            border: 'none', borderRadius: 8, fontSize: '0.88rem', fontWeight: 700,
+            cursor: 'pointer', boxShadow: '0 0 16px rgba(232,176,114,0.25)',
+            transition: 'all 0.15s ease'
+          }}
         >
           <Plus size={18} /> Nueva Reserva
         </button>
       </div>
 
-      {error && <div className="alert-danger-card" style={{ marginBottom: 16 }}>{error}</div>}
+      {error && <div className="alert-danger-card">{error}</div>}
       {successMsg && (
         <div style={{
           background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)',
-          borderRadius: 8, padding: '12px 16px', marginBottom: 16, color: '#4ade80',
+          borderRadius: 8, padding: '12px 16px', color: '#4ade80',
           display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500
         }}>
           <CheckCircle size={18} /> {successMsg}
         </div>
       )}
 
-      {/* Grid Principal Master-Detail 7/5 */}
-      <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20 }}>
+      {/* Metric Capsules */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+        <div style={{
+          background: '#191b22', borderRadius: 14, padding: '14px 18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: '1px solid #282f42', boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>En producción</span>
+            <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC', marginTop: 2 }}>
+              {activasCount} Activas
+            </span>
+          </div>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, background: '#282a30',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8b072'
+          }}>
+            <Sparkles size={22} />
+          </div>
+        </div>
+
+        <div style={{
+          background: '#191b22', borderRadius: 14, padding: '14px 18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          border: '1px solid #282f42', boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Listas para envío</span>
+            <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F5B955', marginTop: 2 }}>
+              {porEntregarCount} Por entregar
+            </span>
+          </div>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10, background: '#282a30',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F5B955'
+          }}>
+            <PackageCheck size={22} />
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Filter Chips & Search Bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: 10, background: '#191b22', padding: 10, borderRadius: 12
+      }}>
+        {/* Search Input */}
+        <div style={{ position: 'relative', flex: '1', minWidth: 200 }}>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Buscar sesión o cliente..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{
+              padding: '6px 12px', width: '100%', background: '#131B2A',
+              border: '1px solid #282f42', color: '#F8FAFC', borderRadius: 8, fontSize: '0.85rem'
+            }}
+          />
+        </div>
+
+        {/* Filter Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto' }}>
+          <button
+            onClick={() => setFilterEstado('')}
+            style={{
+              padding: '6px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+              background: filterEstado === '' ? '#e8b072' : '#282a30',
+              color: filterEstado === '' ? '#482900' : '#94A3B8',
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+            }}
+          >
+            Todos ({bookings.length})
+          </button>
+          <button
+            onClick={() => setFilterEstado('Agendada')}
+            style={{
+              padding: '6px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+              background: filterEstado === 'Agendada' ? '#e8b072' : '#282a30',
+              color: filterEstado === 'Agendada' ? '#482900' : '#94A3B8',
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+            }}
+          >
+            Agendadas ({agendadasCount})
+          </button>
+          <button
+            onClick={() => setFilterEstado('En_edicion')}
+            style={{
+              padding: '6px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+              background: filterEstado === 'En_edicion' ? '#e8b072' : '#282a30',
+              color: filterEstado === 'En_edicion' ? '#482900' : '#94A3B8',
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+            }}
+          >
+            En Edición ({porEntregarCount})
+          </button>
+          <button
+            onClick={() => setFilterEstado('Entregada')}
+            style={{
+              padding: '6px 12px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600,
+              background: filterEstado === 'Entregada' ? '#e8b072' : '#282a30',
+              color: filterEstado === 'Entregada' ? '#482900' : '#94A3B8',
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+            }}
+          >
+            Entregadas ({entregadasCount})
+          </button>
+        </div>
+      </div>
+
+      {/* Grid Principal Master-Detail 7/5 (Desktop & Responsive Mobile) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 20 }}>
         
-        {/* PANEL IZQUIERDO: AGENDA Y LISTADO (7 COLUMNAS) */}
+        {/* PANEL IZQUIERDO: AGENDA CRONOLÓGICA (7 COLS) */}
         <div style={{ gridColumn: 'span 7' }} className="bookings-table-panel">
-          <div className="card" style={{ padding: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ background: '#191b22', borderRadius: 14, padding: 18, border: '1px solid #282f42', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Calendar size={18} className="text-accent" />
-                <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>Agenda de Sesiones</span>
-                <span className="text-muted" style={{ fontSize: '0.85rem' }}>({filtered.length})</span>
+                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC' }}>Agenda Cronológica</span>
               </div>
-              
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Buscar sesión o cliente..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  style={{ width: 170, fontSize: '0.85rem', padding: '6px 10px' }}
-                />
-                <select 
-                  className="form-input" 
-                  style={{ width: 'auto', fontSize: '0.85rem', padding: '6px 10px' }} 
-                  value={filterEstado} 
-                  onChange={e => setFilterEstado(e.target.value)}
-                >
-                  {ESTADOS.map(e => (
-                    <option key={e.id} value={e.id}>{e.label}</option>
-                  ))}
-                </select>
-              </div>
+              <span style={{ fontSize: '0.78rem', color: '#64748B' }}>{filtered.length} registros</span>
             </div>
 
             {filtered.length === 0 ? (
@@ -299,78 +405,68 @@ export default function Bookings() {
               </div>
             ) : (
               <>
-                {/* Tabla para Desktop */}
+                {/* Table for Desktop */}
                 <div className="table-wrapper desktop-only">
-                  <table className="data-table">
+                  <table className="data-table" style={{ width: '100%' }}>
                     <thead>
-                      <tr>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Servicio</th>
-                        <th>Estado</th>
-                        <th style={{ textAlign: 'right' }}>Acción</th>
+                      <tr style={{ background: 'rgba(40, 42, 48, 0.6)', color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <th style={{ padding: '12px 14px' }}>Fecha</th>
+                        <th style={{ padding: '12px 14px' }}>Cliente</th>
+                        <th style={{ padding: '12px 14px' }}>Servicio</th>
+                        <th style={{ padding: '12px 14px' }}>Estado</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right' }}>Presupuesto</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filtered.map(b => {
-                        const isSelected = (selected?.id_reserva || selected?.id) === (b.id_reserva || b.id)
+                        const isSelected = activeFocusBooking && (activeFocusBooking.id_reserva || activeFocusBooking.id) === (b.id_reserva || b.id)
                         const clientName = b.nombre_cliente || b.cliente_nombre || 'Cliente'
                         const serviceName = b.nombre_servicio || b.servicio_nombre || 'Servicio'
 
                         return (
-                          <tr 
-                            key={b.id_reserva || b.id} 
-                            className={isSelected ? 'selected-row' : ''}
+                          <tr
+                            key={b.id_reserva || b.id}
+                            onClick={() => { setSelected(b); setShowCancelForm(false) }}
                             style={{
                               cursor: 'pointer',
-                              background: isSelected ? 'rgba(232, 184, 109, 0.08)' : undefined,
-                              borderLeft: isSelected ? '3px solid #e8b86d' : '3px solid transparent',
+                              background: isSelected ? 'rgba(30, 31, 38, 0.8)' : undefined,
+                              borderLeft: isSelected ? '3px solid #e8b072' : '3px solid transparent',
                               transition: 'all 0.15s ease'
                             }}
-                            onClick={() => { setSelected(b); setShowCancelForm(false) }}
                           >
-                            <td style={{ whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
-                              <div style={{ fontWeight: 600, color: '#f1f5f9' }}>{fmtDate(b.fecha_sesion)}</div>
-                              {b.ubicacion && <div className="text-muted" style={{ fontSize: '0.75rem' }}>{b.ubicacion}</div>}
+                            <td style={{ padding: '12px 14px', whiteSpace: 'nowrap', fontSize: '0.85rem' }}>
+                              <div style={{ fontWeight: 600, color: '#F8FAFC' }}>{fmtDate(b.fecha_sesion)}</div>
+                              <span style={{ fontSize: '0.72rem', color: '#64748B' }}>#RES-{b.id_reserva || b.id}</span>
                             </td>
-                            <td>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+                            <td style={{ padding: '12px 14px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <div style={{
-                                  width: 32, height: 32, borderRadius: '50%',
-                                  background: 'linear-gradient(135deg, rgba(232, 184, 109, 0.25) 0%, rgba(217, 145, 54, 0.1) 100%)',
-                                  border: '1px solid rgba(232, 184, 109, 0.4)',
-                                  color: '#f5b955', display: 'flex', alignItems: 'center',
-                                  justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0
+                                  width: 32, height: 32, borderRadius: '50%', background: '#282a30',
+                                  color: '#e8b072', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: '0.75rem', fontWeight: 700, flexShrink: 0
                                 }}>
                                   {getInitials(clientName)}
                                 </div>
                                 <div>
-                                  <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '0.9rem' }}>{clientName}</div>
-                                  <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                                    {b.contrato_firmado ? (
-                                      <span style={{ color: '#4ade80', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                                        <ShieldCheck size={11} /> Contrato OK
-                                      </span>
-                                    ) : (
-                                      <span style={{ color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                                        <AlertTriangle size={11} /> Sin firmar
-                                      </span>
-                                    )}
+                                  <div style={{ fontWeight: 600, color: '#F8FAFC', fontSize: '0.88rem' }}>{clientName}</div>
+                                  <div style={{ fontSize: '0.72rem', color: b.contrato_firmado ? '#4ade80' : '#f59e0b' }}>
+                                    {b.contrato_firmado ? '✓ Contrato OK' : '⚠ Sin firmar'}
                                   </div>
                                 </div>
                               </div>
                             </td>
-                            <td>
-                              <div style={{ fontWeight: 500, fontSize: '0.88rem', color: '#e2e8f0' }}>{serviceName}</div>
-                              <div className="text-accent" style={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                                {fmt(b.monto_bruto)}
-                              </div>
+
+                            <td style={{ padding: '12px 14px', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                              {serviceName}
                             </td>
-                            <td>
+
+                            <td style={{ padding: '12px 14px' }}>
                               <StatusBadge status={b.estado} />
                             </td>
-                            <td style={{ textAlign: 'right' }}>
-                              <ChevronRight size={18} className={isSelected ? 'text-accent' : 'text-muted'} />
+
+                            <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#F5B955', fontSize: '0.9rem' }}>
+                              {fmt(b.monto_bruto)}
                             </td>
                           </tr>
                         )
@@ -379,64 +475,57 @@ export default function Bookings() {
                   </table>
                 </div>
 
-                {/* Tarjetas Táctiles para Móvil */}
-                <div className="mobile-only booking-cards-list">
+                {/* Session List Stream for Mobile */}
+                <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {filtered.map(b => {
-                    const isSelected = (selected?.id_reserva || selected?.id) === (b.id_reserva || b.id)
+                    const isSelected = activeFocusBooking && (activeFocusBooking.id_reserva || activeFocusBooking.id) === (b.id_reserva || b.id)
                     const clientName = b.nombre_cliente || b.cliente_nombre || 'Cliente'
                     const serviceName = b.nombre_servicio || b.servicio_nombre || 'Servicio'
 
                     return (
                       <div
                         key={b.id_reserva || b.id}
-                        className={`booking-mobile-card ${isSelected ? 'selected' : ''}`}
-                        style={{
-                          background: '#161922', border: isSelected ? '1px solid #e8b86d' : '1px solid #282f42',
-                          borderRadius: 12, padding: 14, marginBottom: 12, cursor: 'pointer'
-                        }}
                         onClick={() => {
                           setSelected(b)
                           setShowCancelForm(false)
                           setTimeout(() => detailRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
                         }}
+                        style={{
+                          background: isSelected ? '#1e222e' : '#161922',
+                          border: isSelected ? '1px solid #e8b072' : '1px solid #282f42',
+                          borderRadius: 12, padding: 12, display: 'flex', alignItems: 'center',
+                          justifyContent: 'space-between', cursor: 'pointer'
+                        }}
                       >
-                        <div className="booking-mobile-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                          <span className="booking-mobile-date" style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Calendar size={13} className="text-accent" /> {fmtDate(b.fecha_sesion)}
-                          </span>
-                          <StatusBadge status={b.estado} />
-                        </div>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                           <div style={{
-                            width: 32, height: 32, borderRadius: '50%',
-                            background: 'rgba(232, 184, 109, 0.2)', border: '1px solid #e8b86d',
-                            color: '#e8b86d', display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700
+                            width: 38, height: 38, borderRadius: 10, background: '#282a30',
+                            color: '#e8b072', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.85rem', fontWeight: 700, flexShrink: 0
                           }}>
                             {getInitials(clientName)}
                           </div>
-                          <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>{clientName}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{serviceName}</div>
-                          </div>
-                          <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                            <div className="text-accent" style={{ fontWeight: 700, fontSize: '0.95rem' }}>{fmt(b.monto_bruto)}</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontWeight: 600, color: '#F8FAFC', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {clientName}
+                              </span>
+                              <span style={{ fontSize: '0.7rem', padding: '1px 6px', borderRadius: 4, background: '#282a30', color: '#e8b072' }}>
+                                {b.estado || 'Agendada'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                              {fmtDate(b.fecha_sesion)} • {serviceName}
+                            </span>
                           </div>
                         </div>
 
-                        {b.ubicacion && (
-                          <div className="booking-mobile-loc" style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <MapPin size={12} /> {b.ubicacion}
-                          </div>
-                        )}
-
-                        <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid #232a3b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.75rem', color: b.contrato_firmado ? '#4ade80' : '#f59e0b' }}>
-                            {b.contrato_firmado ? '✓ Contrato Firmado' : '⚠ Contrato Pendiente'}
+                        <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: 8 }}>
+                          <span style={{ fontWeight: 700, color: '#F8FAFC', fontSize: '0.92rem', display: 'block' }}>
+                            {fmt(b.monto_bruto)}
                           </span>
-                          <span className="text-accent" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-                            Ver detalles <ChevronRight size={14} />
+                          <span style={{ fontSize: '0.72rem', color: '#C78D4D' }}>
+                            #RES-{b.id_reserva || b.id}
                           </span>
                         </div>
                       </div>
@@ -445,169 +534,155 @@ export default function Bookings() {
                 </div>
               </>
             )}
+
+            {/* Studio Utilities & Sync Footer */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <button
+                onClick={exportCSV}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: 10, background: '#131B2A',
+                  border: '1px solid #282f42', color: '#F8FAFC', display: 'flex',
+                  alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', fontSize: '0.85rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Download size={16} className="text-muted" />
+                  <span>Exportar Sesiones (CSV)</span>
+                </div>
+                <ChevronRight size={16} className="text-muted" />
+              </button>
+            </div>
+
           </div>
         </div>
 
-        {/* PANEL DERECHO: DETALLE DE SESIÓN & FLUJO HAUTE ATELIER (5 COLUMNAS) */}
+        {/* PANEL DERECHO: DETALLE DE SESIÓN & FOCUS CARD (5 COLS) */}
         <div style={{ gridColumn: 'span 5' }} className="bookings-detail-panel" ref={detailRef}>
-          {selected ? (
-            <div className="card sticky" style={{ top: 20, padding: 22, border: '1px solid rgba(232, 184, 109, 0.25)' }}>
+          {activeFocusBooking ? (
+            <div style={{
+              background: '#191b22', borderRadius: 16, overflow: 'hidden',
+              border: '1px solid rgba(232, 176, 114, 0.25)', boxShadow: '0 12px 36px rgba(0,0,0,0.7)',
+              position: 'sticky', top: 20
+            }}>
               
-              {/* Header de Detalle */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Sparkles size={18} className="text-accent" />
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
-                      Detalle #RES-{selected.id_reserva || selected.id}
-                    </h3>
-                  </div>
-                  <div className="text-muted" style={{ fontSize: '0.78rem', marginTop: 2 }}>
-                    ID Cliente #{selected.id_cliente || selected.client_id}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <button
-                    className="modal-close mobile-only"
-                    onClick={() => setSelected(null)}
-                    title="Cerrar detalle"
-                  >
-                    <XCircle size={20} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Hero Visual Session Banner */}
+              {/* Card Visual Ribbon / Ambient Banner */}
               <div style={{
-                background: 'linear-gradient(135deg, #1f2433 0%, #151821 100%)',
-                border: '1px solid rgba(232, 184, 109, 0.25)',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 16,
-                position: 'relative',
-                overflow: 'hidden'
+                position: 'relative', padding: 18,
+                background: 'linear-gradient(135deg, #1f2536 0%, #151821 100%)',
+                borderBottom: '1px solid #282f42'
               }}>
                 <div style={{
-                  position: 'absolute', top: -15, right: -15, width: 80, height: 80,
+                  position: 'absolute', right: -20, top: -20, width: 100, height: 100,
                   background: 'radial-gradient(circle, rgba(232, 184, 109, 0.15) 0%, transparent 70%)',
                   borderRadius: '50%'
                 }} />
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <div style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #e8b86d 0%, #c78d4d 100%)',
-                    color: '#2a1a00', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', fontSize: '1rem', fontWeight: 800, flexShrink: 0,
-                    boxShadow: '0 4px 12px rgba(232, 184, 109, 0.3)'
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '3px 10px', borderRadius: 20, background: 'rgba(11, 13, 19, 0.8)',
+                    backdropFilter: 'blur(6px)', fontSize: '0.72rem', color: '#F8FAFC', fontWeight: 600
                   }}>
-                    {getInitials(selected.nombre_cliente || selected.cliente_nombre)}
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5B955', boxShadow: '0 0 6px #F5B955' }} />
+                    <span>PRÓXIMA SESIÓN • #RES-{activeFocusBooking.id_reserva || activeFocusBooking.id}</span>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
-                      {selected.nombre_cliente || selected.cliente_nombre}
-                    </div>
-                    <div className="text-muted" style={{ fontSize: '0.82rem' }}>
-                      {selected.nombre_servicio || selected.servicio_nombre}
-                    </div>
-                  </div>
-                  <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Monto Total</div>
-                    <div className="text-accent" style={{ fontSize: '1.2rem', fontWeight: 800 }}>
-                      {fmt(selected.monto_bruto)}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Metadata Bento Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-                <div style={{
-                  background: '#161922', padding: 12, borderRadius: 8,
-                  border: '1px solid #262c3e'
-                }}>
-                  <div className="text-muted" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                    <Calendar size={13} className="text-accent" /> Fecha de Sesión
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f1f5f9' }}>
-                    {fmtDate(selected.fecha_sesion)}
-                  </div>
-                </div>
-
-                <div style={{
-                  background: '#161922', padding: 12, borderRadius: 8,
-                  border: '1px solid #262c3e'
-                }}>
-                  <div className="text-muted" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                    <MapPin size={13} className="text-accent" /> Locación
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {selected.ubicacion || 'Estudio Diogo'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Contrato Legal Toggle */}
-              <div style={{
-                background: selected.contrato_firmado ? 'rgba(34, 197, 94, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                border: selected.contrato_firmado ? '1px solid rgba(34, 197, 94, 0.25)' : '1px solid rgba(245, 158, 11, 0.25)',
-                borderRadius: 8, padding: '10px 14px', marginBottom: 16,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <FileSignature size={18} style={{ color: selected.contrato_firmado ? '#4ade80' : '#f59e0b' }} />
-                  <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
-                      {selected.contrato_firmado ? 'Contrato Firmado Digitalmente' : 'Contrato Pendiente de Firma'}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                      {selected.contrato_firmado ? 'Válido para procesar y entregar' : 'Requerido para avanzar de fase'}
-                    </div>
-                  </div>
-                </div>
-
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
-                  <input
-                    type="checkbox"
-                    checked={!!selected.contrato_firmado}
+                  {/* Inline Status Selector */}
+                  <select
+                    value={activeFocusBooking.estado || 'Agendada'}
+                    onChange={e => updateEstado(activeFocusBooking.id_reserva || activeFocusBooking.id, e.target.value)}
                     disabled={actionLoading}
-                    onChange={e => updateContrato(selected.id_reserva || selected.id, e.target.checked)}
-                    style={{ width: 16, height: 16, accentColor: '#e8b86d', cursor: 'pointer' }}
-                  />
-                  <span>{selected.contrato_firmado ? 'Firmado' : 'Marcar'}</span>
-                </label>
-              </div>
-
-              {/* Flujo de Trabajo / Status Switcher */}
-              <div style={{
-                background: '#161922', borderRadius: 10, padding: 14,
-                border: '1px solid #282f42', marginBottom: 16
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <div className="text-muted" style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>
-                    Flujo de Producción
-                  </div>
-                  <StatusBadge status={selected.estado} />
+                    style={{
+                      background: 'rgba(11, 13, 19, 0.85)', color: '#e8b072',
+                      border: '1px solid rgba(232, 176, 114, 0.3)', borderRadius: 20,
+                      padding: '3px 10px', fontSize: '0.75rem', fontWeight: 600,
+                      cursor: 'pointer', outline: 'none'
+                    }}
+                  >
+                    {ESTADOS.filter(e => e.id).map(e => (
+                      <option key={e.id} value={e.id}>{e.label}</option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Pipeline visual steps */}
-                <div style={{ display: 'flex', gap: 4, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
-                  {PIPELINE_STEPS.map((step, idx) => {
-                    const isActive = selected.estado?.toLowerCase() === step.id.toLowerCase()
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                  <div>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#e8b072', fontWeight: 600 }}>
+                      {activeFocusBooking.nombre_servicio || activeFocusBooking.servicio_nombre || 'Sesión Fotográfica'}
+                    </span>
+                    <h2 style={{ margin: '2px 0 0 0', fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC' }}>
+                      {activeFocusBooking.nombre_cliente || activeFocusBooking.cliente_nombre}
+                    </h2>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Presupuesto</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F5B955' }}>
+                      {fmt(activeFocusBooking.monto_bruto)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Shoot Details Body */}
+              <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                
+                {/* Bento Grid */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#1e1f26', padding: 12, borderRadius: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#94A3B8', fontSize: '0.85rem' }}>
+                    <Calendar size={16} style={{ color: '#e8b072' }} />
+                    <span style={{ color: '#F8FAFC', fontWeight: 500 }}>{fmtDate(activeFocusBooking.fecha_sesion)}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#94A3B8', fontSize: '0.82rem' }}>
+                    <MapPin size={16} style={{ color: '#e8b072' }} />
+                    <span>{activeFocusBooking.ubicacion || 'Estudio Central Diogo (Palermo)'}</span>
+                  </div>
+                </div>
+
+                {/* Contract Alert Banner */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px', borderRadius: 10, background: '#131B2A',
+                  border: activeFocusBooking.contrato_firmado ? '1px solid rgba(34, 197, 94, 0.25)' : '1px solid rgba(232, 176, 114, 0.25)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <FileSignature size={18} style={{ color: activeFocusBooking.contrato_firmado ? '#4ade80' : '#C78D4D', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Contrato Legal Atelier</span>
+                      <span style={{ fontSize: '0.72rem', color: activeFocusBooking.contrato_firmado ? '#4ade80' : '#C78D4D' }}>
+                        {activeFocusBooking.contrato_firmado ? 'Firmado digitalmente' : 'Pendiente de firma digital'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => updateContrato(activeFocusBooking.id_reserva || activeFocusBooking.id, !activeFocusBooking.contrato_firmado)}
+                    disabled={actionLoading}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, background: '#282a30',
+                      border: 'none', color: '#e8b072', fontSize: '0.75rem', fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {activeFocusBooking.contrato_firmado ? 'Desmarcar' : 'Marcar Firmado'}
+                  </button>
+                </div>
+
+                {/* Pipeline Status Flow */}
+                <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2 }}>
+                  {PIPELINE_STEPS.map((step) => {
+                    const isActive = activeFocusBooking.estado?.toLowerCase() === step.id.toLowerCase()
                     return (
                       <button
                         key={step.id}
                         disabled={actionLoading}
-                        onClick={() => updateEstado(selected.id_reserva || selected.id, step.id)}
+                        onClick={() => updateEstado(activeFocusBooking.id_reserva || activeFocusBooking.id, step.id)}
                         style={{
-                          flex: 1, minWidth: 60, padding: '6px 4px', fontSize: '0.72rem',
+                          flex: 1, minWidth: 55, padding: '6px 4px', fontSize: '0.72rem',
                           borderRadius: 6, border: 'none',
-                          background: isActive ? 'linear-gradient(135deg, #e8b86d 0%, #c78d4d 100%)' : '#232a3b',
-                          color: isActive ? '#2a1a00' : '#94a3b8',
+                          background: isActive ? '#e8b072' : '#1e1f26',
+                          color: isActive ? '#482900' : '#94A3B8',
                           fontWeight: isActive ? 700 : 500,
-                          cursor: 'pointer', transition: 'all 0.15s ease',
-                          textAlign: 'center'
+                          cursor: 'pointer', textAlign: 'center'
                         }}
                       >
                         {step.label}
@@ -616,96 +691,130 @@ export default function Bookings() {
                   })}
                 </div>
 
-                {/* Estado Cancelada Info o Form */}
-                {selected.estado?.toLowerCase() === 'cancelada' && (
-                  <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 6, padding: '8px 12px', color: '#f87171', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <XCircle size={14} /> Cancelada: {selected.motivo_cancelacion || 'Sin motivo especificado'}
-                  </div>
-                )}
+                {/* Quick Operational Actions Grid (3 Cols) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 4 }}>
+                  {getWhatsAppReminderUrl(activeFocusBooking) ? (
+                    <a
+                      href={getWhatsAppReminderUrl(activeFocusBooking)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 4, padding: '10px 4px', borderRadius: 10, background: '#1e1f26',
+                        textDecoration: 'none', color: '#94A3B8', transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <MessageCircle size={18} style={{ color: '#25D366' }} />
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>WhatsApp</span>
+                    </a>
+                  ) : (
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: 4, padding: '10px 4px', borderRadius: 10, background: '#1e1f26', color: '#64748B', opacity: 0.6
+                    }}>
+                      <MessageCircle size={18} />
+                      <span style={{ fontSize: '0.75rem' }}>WhatsApp</span>
+                    </div>
+                  )}
 
-                {selected.estado?.toLowerCase() !== 'cancelada' && !showCancelForm && (
                   <button
-                    onClick={() => setShowCancelForm(true)}
+                    onClick={() => {
+                      alert(`Hoja de Ruta #RES-${activeFocusBooking.id_reserva || activeFocusBooking.id}\nCliente: ${activeFocusBooking.nombre_cliente || activeFocusBooking.cliente_nombre}\nFecha: ${fmtDate(activeFocusBooking.fecha_sesion)}\nLocación: ${activeFocusBooking.ubicacion || 'Estudio Central'}`)
+                    }}
                     style={{
-                      background: 'none', border: 'none', color: '#ef4444',
-                      fontSize: '0.78rem', cursor: 'pointer', display: 'inline-flex',
-                      alignItems: 'center', gap: 4, marginTop: 4, padding: 0
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      gap: 4, padding: '10px 4px', borderRadius: 10, background: '#1e1f26',
+                      border: 'none', color: '#94A3B8', cursor: 'pointer'
                     }}
                   >
-                    <XCircle size={13} /> Cancelar esta reserva
+                    <FileText size={18} style={{ color: '#e8b072' }} />
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Hoja de Ruta</span>
                   </button>
-                )}
 
-                {showCancelForm && (
-                  <div style={{ marginTop: 10, background: '#1c202d', padding: 12, borderRadius: 8, border: '1px solid #3b4257' }}>
-                    <label style={{ display: 'block', marginBottom: 4, fontSize: '0.8rem', color: '#cbd5e1' }}>
-                      Motivo de cancelación:
-                    </label>
+                  {activeFocusBooking.url_galeria ? (
+                    <a
+                      href={activeFocusBooking.url_galeria}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 4, padding: '10px 4px', borderRadius: 10, background: '#1e1f26',
+                        textDecoration: 'none', color: '#94A3B8'
+                      }}
+                    >
+                      <ImageIcon size={18} style={{ color: '#e8b072' }} />
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Ver Galería</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const url = prompt('Ingrese URL de la galería fotográfica:')
+                        if (url) {
+                          fetch(`/api/bookings/${activeFocusBooking.id_reserva || activeFocusBooking.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url_galeria: url })
+                          }).then(() => refetchBookings())
+                        }
+                      }}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: 4, padding: '10px 4px', borderRadius: 10, background: '#1e1f26',
+                        border: 'none', color: '#94A3B8', cursor: 'pointer'
+                      }}
+                    >
+                      <ImageIcon size={18} style={{ color: '#64748B' }} />
+                      <span style={{ fontSize: '0.75rem' }}>+ Galería</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Cancelar Reserva option */}
+                {!showCancelForm ? (
+                  <div style={{ textAlign: 'center', marginTop: 4 }}>
+                    <button
+                      onClick={() => setShowCancelForm(true)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer' }}
+                    >
+                      Cancelar esta reserva
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ background: '#1c202d', padding: 10, borderRadius: 8, border: '1px solid #3b4257' }}>
+                    <label style={{ display: 'block', marginBottom: 4, fontSize: '0.75rem', color: '#cbd5e1' }}>Motivo:</label>
                     <textarea
                       className="form-textarea"
                       rows={2}
                       value={cancelReason}
                       onChange={e => setCancelReason(e.target.value)}
-                      placeholder="Ej: Reprogramado por el cliente, clima adverso..."
-                      style={{ fontSize: '0.85rem' }}
+                      placeholder="Ej. Reprogramación..."
+                      style={{ fontSize: '0.8rem' }}
                     />
-                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                       <button
                         className="btn-danger btn-sm"
                         disabled={!cancelReason || actionLoading}
                         onClick={() => {
-                          updateEstado(selected.id_reserva || selected.id, 'Cancelada', { motivo_cancelacion: cancelReason })
+                          updateEstado(activeFocusBooking.id_reserva || activeFocusBooking.id, 'Cancelada', { motivo_cancelacion: cancelReason })
                           setShowCancelForm(false)
                         }}
                       >
-                        Confirmar Cancelación
+                        Confirmar
                       </button>
-                      <button className="btn-secondary btn-sm" onClick={() => setShowCancelForm(false)}>
-                        Volver
-                      </button>
+                      <button className="btn-secondary btn-sm" onClick={() => setShowCancelForm(false)}>Atrás</button>
                     </div>
                   </div>
                 )}
-              </div>
 
-              {/* Botones de Acción Rápida */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {getWhatsAppReminderUrl(selected) && (
-                  <a
-                    href={getWhatsAppReminderUrl(selected)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      background: '#25D366', color: '#0b2b18', padding: '10px 16px',
-                      borderRadius: 8, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none',
-                      boxShadow: '0 4px 14px rgba(37, 211, 102, 0.25)', transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <MessageCircle size={18} /> Recordatorio por WhatsApp
-                  </a>
-                )}
-
-                {selected.url_galeria && (
-                  <a
-                    href={selected.url_galeria}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-secondary"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '0.88rem' }}
-                  >
-                    <ExternalLink size={16} /> Abrir Galería de Fotos
-                  </a>
-                )}
               </div>
 
             </div>
           ) : (
-            <div className="card" style={{ padding: 40, textAlign: 'center' }}>
+            <div style={{ background: '#191b22', borderRadius: 14, padding: 40, textAlign: 'center', border: '1px solid #282f42' }}>
               <Calendar size={36} className="text-muted" style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
-              <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 4 }}>Ninguna sesión seleccionada</div>
-              <div className="text-muted" style={{ fontSize: '0.85rem' }}>
-                Haz clic en una reserva de la lista para ver sus detalles, gestionar su estado y enviar recordatorios.
+              <div style={{ fontWeight: 600, color: '#F8FAFC' }}>Ninguna sesión seleccionada</div>
+              <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 4 }}>
+                Selecciona una reserva para ver sus detalles.
               </div>
             </div>
           )}
@@ -713,7 +822,7 @@ export default function Bookings() {
 
       </div>
 
-      {/* Modal Nueva Reserva */}
+      {/* Modal: Nueva Reserva */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: 520 }}>
@@ -774,7 +883,7 @@ export default function Bookings() {
                     className="form-input" 
                     value={newBooking.ubicacion} 
                     onChange={e => setNewBooking({...newBooking, ubicacion: e.target.value})} 
-                    placeholder="Estudio Diogo, Exterior, etc." 
+                    placeholder="Estudio Central, Exterior..." 
                   />
                 </div>
               </div>
@@ -785,7 +894,7 @@ export default function Bookings() {
                     type="checkbox"
                     checked={newBooking.contrato_firmado}
                     onChange={e => setNewBooking({...newBooking, contrato_firmado: e.target.checked})}
-                    style={{ width: 16, height: 16, accentColor: '#e8b86d' }}
+                    style={{ width: 16, height: 16, accentColor: '#e8b072' }}
                   />
                   <span style={{ fontSize: '0.88rem', color: '#e2e8f0' }}>Marcar contrato como firmado previamente</span>
                 </label>
@@ -806,6 +915,7 @@ export default function Bookings() {
           </div>
         </div>
       )}
+
     </div>
   )
 }
