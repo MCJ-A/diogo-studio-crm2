@@ -1566,37 +1566,20 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 6px 20px rgba(245, 185, 85, 0.35);
 }
 
-/* KPI Highlights Grid / Track */
+/* KPI Highlights Grid - Haute Atelier 2x2 */
 .kpi-luxury-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 520px) {
   .kpi-luxury-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 
-@media (max-width: 640px) {
-  .kpi-luxury-grid {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 12px;
-    padding-bottom: 6px;
-    margin: 0 -14px;
-    padding-left: 14px;
-    padding-right: 14px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .kpi-luxury-card {
-    min-width: 200px;
-    flex: 1 0 auto;
-    scroll-snap-align: start;
-  }
-}
 
 .kpi-luxury-card {
   position: relative;
@@ -2635,7 +2618,7 @@ img { max-width: 100%; display: block; }
 
 .kpi-luxury-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 

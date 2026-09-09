@@ -117,108 +117,84 @@ export default function Dashboard() {
       </div>
 
       {/* 2. KPI Highlights Grid (Responsive Track) */}
-      <section className="kpi-luxury-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="kpi-luxury-grid">
         
         {/* Card 1: Reservas */}
-        <div className="kpi-luxury-card relative overflow-hidden rounded-xl bg-surface-card p-5 shadow-xl flex flex-col justify-between group hover:bg-surface-elevated transition-all border border-white/[0.08]">
-          <div className="kpi-card-top flex items-start justify-between">
-            <span className="kpi-card-title text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Reservas del Mes
-            </span>
-            <div className="kpi-icon-box w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-text-secondary group-hover:text-primary transition-colors">
+        <div className="kpi-luxury-card">
+          <div className="kpi-card-top">
+            <span className="kpi-card-title">Reservas del Mes</span>
+            <div className="kpi-icon-box">
               <Calendar size={18} />
             </div>
           </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <span className="kpi-luxury-value text-3xl font-bold font-display text-text-primary">
-              {bookingsCount}
-            </span>
-            <span className="kpi-trend-pill gold inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-accent-gold-bright text-xs font-semibold">
+          <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="kpi-luxury-value">{bookingsCount}</span>
+            <span className="kpi-trend-pill gold">
               <ArrowUpRight size={12} /> +15% mes
             </span>
           </div>
-          <div className="kpi-card-footer mt-3 pt-2 flex items-center justify-between text-text-muted text-xs border-t border-white/[0.04]">
+          <div className="kpi-card-footer">
             <span>Próxima: Sesión Novios</span>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-gold-muted/30 via-transparent to-transparent" />
         </div>
 
         {/* Card 2: Ingresos Totales (High Importance Gold) */}
-        <div className="kpi-luxury-card relative overflow-hidden rounded-xl bg-surface-card p-5 shadow-xl flex flex-col justify-between group hover:bg-surface-elevated transition-all border border-amber-500/30">
-          <div className="kpi-card-top flex items-start justify-between">
-            <span className="kpi-card-title gold text-xs font-semibold uppercase tracking-widest text-accent-gold-muted">
-              Ingresos Totales
-            </span>
-            <div className="kpi-icon-box gold w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-accent-gold-bright">
+        <div className="kpi-luxury-card" style={{ borderColor: 'rgba(245, 185, 85, 0.25)' }}>
+          <div className="kpi-card-top">
+            <span className="kpi-card-title gold">Ingresos Totales</span>
+            <div className="kpi-icon-box gold">
               <Euro size={18} />
             </div>
           </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <span className="kpi-luxury-value gold text-3xl font-bold font-display text-accent-gold-bright tracking-tight">
-              {fmt(totalRevenue)}
-            </span>
-            <span className="kpi-trend-pill gold inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-gold-bright/10 text-accent-gold-bright text-xs font-semibold">
+          <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="kpi-luxury-value gold">{fmt(totalRevenue)}</span>
+            <span className="kpi-trend-pill gold">
               <TrendingUp size={12} /> +22.4%
             </span>
           </div>
-          <div className="progress-bar-bg w-full bg-surface-container rounded-full h-1.5 overflow-hidden my-2">
-            <div className="progress-bar-fill-gold bg-primary-container h-full rounded-full" style={{ width: '82%' }} />
+          <div className="progress-bar-bg">
+            <div className="progress-bar-fill-gold" style={{ width: '82%' }} />
           </div>
-          <div className="kpi-card-footer mt-1 pt-1 flex items-center justify-between text-text-muted text-xs">
+          <div className="kpi-card-footer">
             <span>Facturación neta cerrada</span>
-            <span className="text-accent-gold-muted font-semibold">Meta 82%</span>
+            <span style={{ color: 'var(--accent-gold-muted)', fontWeight: 600 }}>Meta 82%</span>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-container via-accent-gold-bright to-accent-gold-muted" />
         </div>
 
         {/* Card 3: Cartera Activa */}
-        <div className="kpi-luxury-card relative overflow-hidden rounded-xl bg-surface-card p-5 shadow-xl flex flex-col justify-between group hover:bg-surface-elevated transition-all border border-white/[0.08]">
-          <div className="kpi-card-top flex items-start justify-between">
-            <span className="kpi-card-title text-xs font-semibold uppercase tracking-widest text-text-muted">
-              Cartera Activa
-            </span>
-            <div className="kpi-icon-box w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-text-secondary group-hover:text-primary transition-colors">
+        <div className="kpi-luxury-card">
+          <div className="kpi-card-top">
+            <span className="kpi-card-title">Cartera Activa</span>
+            <div className="kpi-icon-box">
               <Users size={18} />
             </div>
           </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <span className="kpi-luxury-value text-3xl font-bold font-display text-text-primary">
-              {activeClientsCount}
-            </span>
-            <span className="kpi-trend-pill neutral inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-secondary text-xs font-semibold">
-              1 VIP • 3 Standard
-            </span>
+          <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="kpi-luxury-value">{activeClientsCount}</span>
+            <span className="kpi-trend-pill neutral">1 VIP • 3 Standard</span>
           </div>
-          <div className="kpi-card-footer mt-3 pt-2 flex items-center justify-between text-text-muted text-xs border-t border-white/[0.04]">
+          <div className="kpi-card-footer">
             <span>Ratio retención alto</span>
-            <span className="text-secondary font-semibold">100% NPS</span>
+            <span style={{ color: '#bcc7de', fontWeight: 600 }}>100% NPS</span>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-surface-variant via-transparent to-transparent" />
         </div>
 
         {/* Card 4: Acciones Críticas */}
-        <div className="kpi-luxury-card relative overflow-hidden rounded-xl bg-surface-card p-5 shadow-xl flex flex-col justify-between group hover:bg-surface-elevated transition-all border border-red-500/20">
-          <div className="kpi-card-top flex items-start justify-between">
-            <span className="kpi-card-title error text-xs font-semibold uppercase tracking-widest text-error">
-              Acciones Críticas
-            </span>
-            <div className="kpi-icon-box error w-10 h-10 rounded-lg bg-error-container/30 flex items-center justify-center text-error">
+        <div className="kpi-luxury-card" style={{ borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+          <div className="kpi-card-top">
+            <span className="kpi-card-title error">Acciones Críticas</span>
+            <div className="kpi-icon-box error">
               <AlertTriangle size={18} />
             </div>
           </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <span className="kpi-luxury-value error text-3xl font-bold font-display text-error">
-              {criticalCount}
-            </span>
-            <span className="kpi-trend-pill error inline-flex items-center px-2 py-0.5 rounded-full bg-error-container/40 text-error text-xs font-semibold uppercase tracking-wider">
-              Requerida
-            </span>
+          <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <span className="kpi-luxury-value error">{criticalCount}</span>
+            <span className="kpi-trend-pill error">Requerida</span>
           </div>
-          <div className="kpi-card-footer mt-3 pt-2 flex items-center justify-between text-text-muted text-xs border-t border-white/[0.04]">
-            <span className="text-error font-medium">Contrato pendiente</span>
-            <span className="text-text-muted">Prioridad Alta</span>
+          <div className="kpi-card-footer">
+            <span style={{ color: 'var(--error)' }}>Contrato pendiente</span>
+            <span style={{ color: 'var(--text-muted)' }}>Prioridad Alta</span>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-error" />
         </div>
 
       </section>
