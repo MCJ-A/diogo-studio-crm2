@@ -33,51 +33,66 @@ export default function Clients() {
   const [newClient, setNewClient] = useState(EMPTY_CLIENT)
   const [creating, setCreating] = useState(false)
 
+  const fetchClientsList = async () => {
+    try {
+      const res = await fetch('/api/clients')
+      if (!res.ok) throw new Error('Error al obtener clientes')
+      const data = await res.json()
+      setClients(Array.isArray(data) ? data : data.clients || [])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    fetch('/api/clients')
-      .then(r => r.json())
-      .then(data => { setClients(data); setLoading(false) })
-      .catch(err => { setError(err.message); setLoading(false) })
+    fetchClientsList()
   }, [])
 
   useEffect(() => {
-    if (id && clients.length > 0) {
-      const c = clients.find(x => x.id_cliente === parseInt(id))
-      if (c) {
-        setSelected(c)
-        setEditData({...c})
-        
-        Promise.all([
-          fetch(`/api/clients/${c.id_cliente}/bookings`).then(r => r.json()),
-          fetch(`/api/dashboard/loyalty`).then(r => r.json())
-        ]).then(([bData, lData]) => {
-          setBookings(bData)
-          const l = lData.find(x => x.id === c.id_cliente)
-          if (l) setLoyalty(l)
+    if (id) {
+      const clientId = parseInt(id)
+      fetch(`/api/clients/${clientId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.client) {
+            setSelected(data.client)
+            setEditData({ ...data.client })
+            setBookings(data.bookings || [])
+            setLoyalty(data.loyalty || null)
+          } else if (data.id) {
+            setSelected(data)
+            setEditData({ ...data })
+          }
         })
-      }
+        .catch(err => setError(err.message))
     } else {
       setSelected(null)
     }
-  }, [id, clients])
+  }, [id])
 
   const handleSave = async () => {
+    const currentId = selected?.id || selected?.id_cliente
+    if (!currentId) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/clients/${selected.id_cliente}`, {
+      const res = await fetch(`/api/clients/${currentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editData)
       })
-      if (!res.ok) throw new Error('Error al actualizar')
+      if (!res.ok) throw new Error('Error al actualizar cliente')
       const updated = await res.json()
+      const clientObj = updated.client || updated
       
-      setClients(prev => prev.map(c => c.id_cliente === selected.id_cliente ? (updated.client || updated) : c))
-      setSelected(updated.client || updated)
+      setClients(prev => prev.map(c => (c.id || c.id_cliente) === currentId ? clientObj : c))
+      setSelected(clientObj)
     } catch(e) {
       setError(e.message)
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const handleCreate = async () => {
@@ -88,22 +103,24 @@ export default function Clients() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newClient)
       })
-      if (!res.ok) throw new Error('Error al crear')
+      if (!res.ok) throw new Error('Error al crear cliente')
       const created = await res.json()
-      setClients(prev => [...prev, created.client || created])
+      const clientObj = created.client || created
+      setClients(prev => [...prev, clientObj])
       setShowModal(false)
       setNewClient(EMPTY_CLIENT)
     } catch(e) {
       setError(e.message)
+    } finally {
+      setCreating(false)
     }
-    setCreating(false)
   }
 
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
 
   // DETAIL VIEW
   if (selected) {
-    const badge = getLoyaltyBadge(loyalty?.descuento_sugerido_pct || 0)
+    const badge = getLoyaltyBadge(loyalty?.descuento_sugerido_pct || selected?.descuento_sugerido_pct || 0)
     return (
       <div>
         <button className="back-btn" onClick={() => navigate('/clients')}>
@@ -137,7 +154,7 @@ export default function Clients() {
                   <input className="form-input" value={editData.nombre || ''} onChange={e => setEditData({...editData, nombre: e.target.value})} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Telefono</label>
+                  <label className="form-label">Teléfono</label>
                   <input className="form-input" value={editData.telefono || ''} onChange={e => setEditData({...editData, telefono: e.target.value})} />
                 </div>
               </div>
@@ -170,19 +187,19 @@ export default function Clients() {
                       <tr>
                         <th>Servicio</th>
                         <th>Fecha</th>
-                        <th>Ubicacion</th>
+                        <th>Ubicación</th>
                         <th>Estado</th>
                         <th>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {bookings.map(b => (
-                        <tr key={b.id_reserva}>
-                          <td>{b.nombre_servicio}</td>
+                        <tr key={b.id || b.id_reserva}>
+                          <td>{b.servicio_nombre || b.nombre_servicio || 'Servicio'}</td>
                           <td>{fmtDate(b.fecha_sesion)}</td>
                           <td>{b.ubicacion || '—'}</td>
                           <td><StatusBadge status={b.estado} /></td>
-                          <td className="text-accent" style={{fontWeight:700}}>{fmt(b.monto_bruto)}</td>
+                          <td className="text-accent" style={{fontWeight:700}}>{fmt(b.monto_bruto || b.precio_base)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -226,9 +243,10 @@ export default function Clients() {
           </thead>
           <tbody>
             {clients.map(c => {
+              const clientId = c.id || c.id_cliente
               const phone = (c.telefono || '').replace(/\D/g, '')
               return (
-                <tr key={c.id_cliente}>
+                <tr key={clientId}>
                   <td style={{fontWeight:500}}>{c.nombre}</td>
                   <td>
                     {c.telefono ? (
@@ -253,7 +271,7 @@ export default function Clients() {
                   </td>
                   <td className="text-muted">{fmtDate(c.fecha_registro)}</td>
                   <td style={{textAlign:'right'}}>
-                    <button className="btn-secondary btn-sm" onClick={() => navigate(`/clients/${c.id_cliente}`)}>Ver Perfil</button>
+                    <button className="btn-secondary btn-sm" onClick={() => navigate(`/clients/${clientId}`)}>Ver Perfil</button>
                   </td>
                 </tr>
               )
@@ -268,9 +286,10 @@ export default function Clients() {
           <div className="no-data">No hay clientes registrados</div>
         ) : (
           clients.map(c => {
+            const clientId = c.id || c.id_cliente
             const phone = (c.telefono || '').replace(/\D/g, '')
             return (
-              <div key={c.id_cliente} className="client-mobile-card">
+              <div key={clientId} className="client-mobile-card">
                 <div className="client-mobile-card-header">
                   <div>
                     <h3 className="client-mobile-name">{c.nombre}</h3>
@@ -314,7 +333,7 @@ export default function Clients() {
                   <button
                     className="btn-secondary btn-sm"
                     style={{ marginLeft: 'auto' }}
-                    onClick={() => navigate(`/clients/${c.id_cliente}`)}
+                    onClick={() => navigate(`/clients/${clientId}`)}
                   >
                     Ver Perfil
                   </button>
@@ -329,7 +348,7 @@ export default function Clients() {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Nuevo Cliente</h3>
+              <h3 style={{ margin: 0 }}>Nuevo Cliente</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><XCircle size={20} /></button>
             </div>
             <div className="modal-body">

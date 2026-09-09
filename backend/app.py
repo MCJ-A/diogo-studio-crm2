@@ -26,12 +26,18 @@ if not os.path.exists(db_file):
     print("Base de datos no encontrada. Inicializando...")
     init_database()
 
+from datetime import timedelta
+
 # Configuración JWT
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "super-secret-key-para-diogo-estudio")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
 jwt = JWTManager(app)
 
 @app.before_request
 def check_jwt():
+    # No verificar JWT en preflights OPTIONS de CORS
+    if request.method == 'OPTIONS':
+        return
     # Solo requerir JWT para rutas que empiecen con /api/ (excepto login)
     if request.path.startswith('/api/') and not request.path.startswith('/api/auth'):
         verify_jwt_in_request()
