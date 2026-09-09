@@ -32,6 +32,10 @@ def format_booking(row):
     d['cliente_nombre'] = c_name
     d['nombre_cliente'] = c_name
 
+    c_tel = d.get('cliente_telefono') or d.get('telefono_cliente') or d.get('telefono')
+    d['cliente_telefono'] = c_tel
+    d['telefono_cliente'] = c_tel
+
     s_name = d.get('servicio_nombre') or d.get('nombre_servicio')
     d['servicio_nombre'] = s_name
     d['nombre_servicio'] = s_name
@@ -43,7 +47,8 @@ def get_bookings():
     try:
         db = get_db()
         rows = db.execute("""
-            SELECT b.*, c.nombre AS cliente_nombre, s.nombre AS servicio_nombre,
+            SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   s.nombre AS servicio_nombre,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
                    p.saldo_pendiente, p.estado_pago
             FROM bookings b
@@ -62,7 +67,8 @@ def get_booking(id):
     try:
         db = get_db()
         booking = db.execute("""
-            SELECT b.*, c.nombre AS cliente_nombre, s.nombre AS servicio_nombre,
+            SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   s.nombre AS servicio_nombre,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
                    p.saldo_pendiente, p.estado_pago
             FROM bookings b
