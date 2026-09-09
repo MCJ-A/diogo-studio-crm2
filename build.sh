@@ -5,7 +5,7 @@ echo ">>> Instalando dependencias de Python..."
 pip install -r requirements.txt
 
 echo ">>> Construyendo Frontend React (Vite)..."
-npm install --prefix client
+npm install --include=dev --prefix client
 npm run build --prefix client
 
 echo ">>> Inicializando Base de Datos si es necesario..."
