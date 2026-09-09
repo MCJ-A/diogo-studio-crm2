@@ -211,7 +211,8 @@ export default function Clients() {
         </button>
       </div>
 
-      <div className="table-wrapper">
+      {/* Vista de tabla para escritorio */}
+      <div className="table-wrapper desktop-only">
         <table className="data-table">
           <thead>
             <tr>
@@ -259,6 +260,69 @@ export default function Clients() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Vista de tarjetas para dispositivos móviles */}
+      <div className="mobile-only client-cards-list">
+        {clients.length === 0 ? (
+          <div className="no-data">No hay clientes registrados</div>
+        ) : (
+          clients.map(c => {
+            const phone = (c.telefono || '').replace(/\D/g, '')
+            return (
+              <div key={c.id_cliente} className="client-mobile-card">
+                <div className="client-mobile-card-header">
+                  <div>
+                    <h3 className="client-mobile-name">{c.nombre}</h3>
+                    <div className="client-mobile-meta">Registrado: {fmtDate(c.fecha_registro)}</div>
+                  </div>
+                  {c.instagram && (
+                    <a
+                      href={`https://instagram.com/${c.instagram.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="client-mobile-insta"
+                    >
+                      <AtSign size={13} /> {c.instagram}
+                    </a>
+                  )}
+                </div>
+
+                <div className="client-mobile-actions">
+                  {c.telefono ? (
+                    <>
+                      <a
+                        href={`https://wa.me/${phone}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-whatsapp-mobile"
+                      >
+                        <MessageCircle size={16} /> WhatsApp
+                      </a>
+                      <a
+                        href={`tel:${phone}`}
+                        className="btn-call-mobile"
+                        title="Llamar"
+                      >
+                        <Phone size={16} /> Llamar
+                      </a>
+                    </>
+                  ) : (
+                    <span className="text-muted" style={{ fontSize: '0.8rem' }}>Sin teléfono</span>
+                  )}
+
+                  <button
+                    className="btn-secondary btn-sm"
+                    style={{ marginLeft: 'auto' }}
+                    onClick={() => navigate(`/clients/${c.id_cliente}`)}
+                  >
+                    Ver Perfil
+                  </button>
+                </div>
+              </div>
+            )
+          })
+        )}
       </div>
 
       {showModal && (

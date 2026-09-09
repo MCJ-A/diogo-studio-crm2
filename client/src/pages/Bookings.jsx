@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, Users, Camera, Edit, MapPin, CheckCircle, Clock, Save, XCircle, ChevronRight, FileText, FileSignature, CheckSquare, MessageCircle, AlertTriangle } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 
@@ -242,45 +242,96 @@ export default function Bookings() {
             {filtered.length === 0 ? (
               <div className="no-data">No hay reservas {filterEstado ? `en estado ${filterEstado}` : 'registradas'}</div>
             ) : (
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>Cliente</th>
-                      <th>Servicio</th>
-                      <th>Estado</th>
-                      <th style={{textAlign:'right'}}>Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map(b => (
-                      <tr 
-                        key={b.id_reserva} 
-                        className={selected?.id_reserva === b.id_reserva ? 'selected-row' : ''}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => { setSelected(b); setShowCancelForm(false) }}
-                      >
-                        <td>{fmtDate(b.fecha_sesion)}</td>
-                        <td style={{fontWeight:500}}>{b.nombre_cliente}</td>
-                        <td className="text-muted">{b.nombre_servicio}</td>
-                        <td><StatusBadge status={b.estado} /></td>
-                        <td style={{textAlign:'right'}}>
-                          <ChevronRight size={18} className="text-muted" />
-                        </td>
+              <>
+                {/* Tabla para escritorio */}
+                <div className="table-wrapper desktop-only">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th style={{textAlign:'right'}}>Acción</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {filtered.map(b => (
+                        <tr 
+                          key={b.id_reserva} 
+                          className={selected?.id_reserva === b.id_reserva ? 'selected-row' : ''}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => { setSelected(b); setShowCancelForm(false) }}
+                        >
+                          <td>{fmtDate(b.fecha_sesion)}</td>
+                          <td style={{fontWeight:500}}>{b.nombre_cliente}</td>
+                          <td className="text-muted">{b.nombre_servicio}</td>
+                          <td><StatusBadge status={b.estado} /></td>
+                          <td style={{textAlign:'right'}}>
+                            <ChevronRight size={18} className="text-muted" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Tarjetas para móvil */}
+                <div className="mobile-only booking-cards-list">
+                  {filtered.map(b => (
+                    <div
+                      key={b.id_reserva}
+                      className={`booking-mobile-card ${selected?.id_reserva === b.id_reserva ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelected(b)
+                        setShowCancelForm(false)
+                        setTimeout(() => detailRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+                      }}
+                    >
+                      <div className="booking-mobile-top">
+                        <span className="booking-mobile-date">
+                          <Calendar size={13} /> {fmtDate(b.fecha_sesion)}
+                        </span>
+                        <StatusBadge status={b.estado} />
+                      </div>
+                      <div className="booking-mobile-title">{b.nombre_cliente}</div>
+                      <div className="booking-mobile-sub">
+                        <span>{b.nombre_servicio}</span>
+                        {b.monto_bruto && <strong className="text-accent">{fmt(b.monto_bruto)}</strong>}
+                      </div>
+                      {b.ubicacion && (
+                        <div className="booking-mobile-loc">
+                          <MapPin size={12} /> {b.ubicacion}
+                        </div>
+                      )}
+                      <div className="booking-mobile-footer">
+                        <span className="text-accent" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          Ver detalles y flujo <ChevronRight size={14} />
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
 
-        <div className="dashboard-right" style={{ flex: '1' }}>
+        <div className="dashboard-right" style={{ flex: '1' }} ref={detailRef}>
           {selected ? (
             <div className="card sticky" style={{ top: '24px' }}>
-              <div className="card-title" style={{display:'flex', alignItems:'center', gap:8}}><FileText size={18} className="text-accent"/> Detalle de Reserva</div>
+              <div className="card-title" style={{display:'flex', alignItems:'center', justifyContent: 'space-between'}}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FileText size={18} className="text-accent"/> Detalle de Reserva
+                </span>
+                <button
+                  className="modal-close mobile-only"
+                  onClick={() => setSelected(null)}
+                  title="Cerrar detalle"
+                >
+                  <XCircle size={20} />
+                </button>
+              </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>

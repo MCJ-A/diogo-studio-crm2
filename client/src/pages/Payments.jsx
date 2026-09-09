@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { DollarSign, Save, XCircle, CreditCard, ChevronRight } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
 
@@ -38,6 +38,8 @@ export default function Payments() {
     }
   }
 
+  const editRef = useRef(null)
+
   const selectRow = (b) => {
     setSelected(b)
     setPayData({
@@ -47,6 +49,7 @@ export default function Payments() {
       anticipo: b.anticipo_pagado ?? b.anticipo ?? '',
       estado_pago: b.estado_pago || 'Pendiente',
     })
+    setTimeout(() => editRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
   const saldo = () => {
@@ -117,7 +120,9 @@ export default function Payments() {
             <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CreditCard size={18} className="text-accent" /> Todos los pagos
             </div>
-            <div className="table-wrapper">
+
+            {/* Tabla para escritorio */}
+            <div className="table-wrapper desktop-only">
               <table className="data-table">
                 <thead>
                   <tr>
@@ -158,10 +163,53 @@ export default function Payments() {
                 </tbody>
               </table>
             </div>
+
+            {/* Tarjetas móviles */}
+            <div className="mobile-only payment-cards-list">
+              {bookings.length === 0 ? (
+                <div className="no-data">Sin reservas registradas</div>
+              ) : bookings.map(b => {
+                const saldoB = (b.monto_bruto || 0) - (b.descuento || 0) - (b.anticipo_pagado || b.anticipo || 0)
+                return (
+                  <div
+                    key={b.id_reserva}
+                    className={`payment-mobile-card ${selected?.id_reserva === b.id_reserva ? 'selected' : ''}`}
+                    onClick={() => selectRow(b)}
+                  >
+                    <div className="payment-mobile-top">
+                      <div>
+                        <div className="payment-mobile-client">{b.nombre_cliente}</div>
+                        <div className="payment-mobile-service">{b.nombre_servicio}</div>
+                      </div>
+                      <StatusBadge status={b.estado_pago || 'Pendiente'} />
+                    </div>
+
+                    <div className="payment-mobile-middle">
+                      <div className="payment-mobile-stat">
+                        <span className="payment-stat-label">Fecha:</span>
+                        <span>{fmtDate(b.fecha_sesion)}</span>
+                      </div>
+                      <div className="payment-mobile-stat">
+                        <span className="payment-stat-label">Saldo Pendiente:</span>
+                        <strong style={{ color: saldoB > 0 ? 'var(--danger)' : saldoB <= 0 && b.monto_bruto ? 'var(--success)' : 'var(--text-muted)' }}>
+                          {b.monto_bruto ? fmt(Math.max(0, saldoB)) : '—'}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="payment-mobile-footer">
+                      <span className="text-accent" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        Editar pago <ChevronRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 
-        <div className="dashboard-right" style={{ flex: '1' }}>
+        <div className="dashboard-right" style={{ flex: '1' }} ref={editRef}>
           {selected ? (
             <div className="card sticky" style={{ top: '24px' }}>
               <div className="modal-header" style={{marginBottom:16}}>
