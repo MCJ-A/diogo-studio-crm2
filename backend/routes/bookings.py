@@ -49,8 +49,14 @@ def get_bookings():
         rows = db.execute("""
             SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
                    s.nombre AS servicio_nombre,
+                   p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
-                   p.saldo_pendiente, p.estado_pago
+                   COALESCE(p.anticipo_pagado, 0) AS anticipo_pagado,
+                   COALESCE(p.descuento_aplicado, 0) AS descuento_aplicado,
+                   p.motivo_descuento,
+                   COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
+                   COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
+                   p.fecha_ultimo_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id
@@ -69,8 +75,14 @@ def get_booking(id):
         booking = db.execute("""
             SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
                    s.nombre AS servicio_nombre,
+                   p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
-                   p.saldo_pendiente, p.estado_pago
+                   COALESCE(p.anticipo_pagado, 0) AS anticipo_pagado,
+                   COALESCE(p.descuento_aplicado, 0) AS descuento_aplicado,
+                   p.motivo_descuento,
+                   COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
+                   COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
+                   p.fecha_ultimo_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id
