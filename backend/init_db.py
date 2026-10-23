@@ -9,6 +9,11 @@ def init_database():
         print("Error: No se encontró el archivo schema.sql")
         return
 
+    # Si la base de datos ya existe y tiene tablas, no reinicializar
+    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
+        print(f"Base de datos existente encontrada ({db_path}). Verificando estructura...")
+        return
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
