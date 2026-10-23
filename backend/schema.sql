@@ -157,3 +157,18 @@ CREATE TABLE IF NOT EXISTS newsletter_campaigns (
 );
 
 CREATE INDEX IF NOT EXISTS idx_campaigns_fecha ON newsletter_campaigns(fecha_envio);
+
+-- Tabla de días marcados, bloqueos de agenda y recordatorios anti-olvido
+CREATE TABLE IF NOT EXISTS calendar_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha DATE NOT NULL,
+    hora TEXT DEFAULT '09:00',
+    titulo TEXT NOT NULL,
+    tipo TEXT DEFAULT 'recordatorio' CHECK (tipo IN ('recordatorio', 'bloqueo', 'pre_reserva', 'entrega')),
+    prioridad TEXT DEFAULT 'alta' CHECK (prioridad IN ('normal', 'alta', 'urgente')),
+    notas TEXT,
+    completado BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_calendar_notes_fecha ON calendar_notes(fecha);

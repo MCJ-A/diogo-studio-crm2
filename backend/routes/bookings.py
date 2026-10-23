@@ -340,3 +340,110 @@ def delete_booking(id):
         return jsonify({"message": "Booking eliminado correctamente"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ============================================================
+# DÍAS MARCADOS, BLOQUEOS Y RECORDATORIOS DE AGENDA (CALENDAR)
+# ============================================================
+
+@bookings_bp.route('/calendar-notes', methods=['GET'])
+def list_calendar_notes():
+    try:
+        db = get_db()
+        rows = db.execute("""
+            SELECT * FROM calendar_notes
+            ORDER BY fecha ASC, hora ASC
+        """).fetchall()
+        db.close()
+        result = []
+        for r in rows:
+            d = dict(r)
+            d['completado'] = bool(d.get('completado', 0))
+            result.append(d)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@bookings_bp.route('/calendar-notes', methods=['POST'])
+def create_calendar_note():
+    try:
+        data = request.get_json() or {}
+        fecha = data.get('fecha')
+        titulo = (data.get('titulo') or '').strip()
+        if not fecha or not titulo:
+            return jsonify({"error": "Fecha y título son obligatorios para marcar el día"}), 400
+
+        hora = data.get('hora') or '09:00'
+        tipo = data.get('tipo') or 'recordatorio'
+        if tipo not in ('recordatorio', 'bloqueo', 'pre_reserva', 'entrega'):
+            tipo = 'recordatorio'
+        prioridad = data.get('prioridad') or 'alta'
+        if prioridad not in ('normal', 'alta', 'urgente'):
+            prioridad = 'alta'
+        notas = data.get('notas') or ''
+
+        db = get_db()
+        cur = db.execute("""
+            INSERT INTO calendar_notes (fecha, hora, titulo, tipo, prioridad, notas, completado)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+        """, (fecha, hora, titulo, tipo, prioridad, notas))
+        db.commit()
+        row = db.execute("SELECT * FROM calendar_notes WHERE id = ?", (cur.lastrowid,)).fetchone()
+        db.close()
+        d = dict(row)
+        d['completado'] = bool(d.get('completado', 0))
+        return jsonify(d), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@bookings_bp.route('/calendar-notes/<int:note_id>', methods=['PATCH', 'PUT'])
+def update_calendar_note(note_id):
+    try:
+        data = request.get_json() or {}
+        db = get_db()
+        existing = db.execute("SELECT * FROM calendar_notes WHERE id = ?", (note_id,)).fetchone()
+        if not existing:
+            db.close()
+            return jsonify({"error": "Recordatorio no encontrado"}), 404
+
+        completado_val = int(bool(data['completado'])) if 'completado' in data else None
+        db.execute("""
+            UPDATE calendar_notes SET
+                fecha = COALESCE(?, fecha),
+                hora = COALESCE(?, hora),
+                titulo = COALESCE(?, titulo),
+                tipo = COALESCE(?, tipo),
+                prioridad = COALESCE(?, prioridad),
+                notas = COALESCE(?, notas),
+                completado = COALESCE(?, completado)
+            WHERE id = ?
+        """, (
+            data.get('fecha'),
+            data.get('hora'),
+            data.get('titulo'),
+            data.get('tipo'),
+            data.get('prioridad'),
+            data.get('notas'),
+            completado_val,
+            note_id
+        ))
+        db.commit()
+        row = db.execute("SELECT * FROM calendar_notes WHERE id = ?", (note_id,)).fetchone()
+        db.close()
+        d = dict(row)
+        d['completado'] = bool(d.get('completado', 0))
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@bookings_bp.route('/calendar-notes/<int:note_id>', methods=['DELETE'])
+def delete_calendar_note(note_id):
+    try:
+        db = get_db()
+        db.execute("DELETE FROM calendar_notes WHERE id = ?", (note_id,))
+        db.commit()
+        db.close()
+        return jsonify({"message": "Recordatorio eliminado"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+

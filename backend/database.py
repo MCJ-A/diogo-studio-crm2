@@ -76,6 +76,36 @@ def run_migrations(conn):
                OR (b.estado IN ('Realizada', 'Seleccion_pendiente', 'En_edicion', 'Entregada') AND COALESCE(p.saldo_pendiente, 0) > 0)
         """)
 
+        # 4. Crear tabla de días marcados / recordatorios / bloqueos (calendar_notes)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS calendar_notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fecha DATE NOT NULL,
+                hora TEXT DEFAULT '09:00',
+                titulo TEXT NOT NULL,
+                tipo TEXT DEFAULT 'recordatorio' CHECK (tipo IN ('recordatorio', 'bloqueo', 'pre_reserva', 'entrega')),
+                prioridad TEXT DEFAULT 'alta' CHECK (prioridad IN ('normal', 'alta', 'urgente')),
+                notas TEXT,
+                completado BOOLEAN DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_calendar_notes_fecha ON calendar_notes(fecha)")
+
+        # Si está vacía, insertar dos recordatorios de ejemplo para el estudio
+        cursor.execute("SELECT COUNT(*) FROM calendar_notes")
+        if cursor.fetchone()[0] == 0:
+            from datetime import date, timedelta
+            hoy = date.today()
+            manana = (hoy + timedelta(days=1)).isoformat()
+            prox_sem = (hoy + timedelta(days=4)).isoformat()
+            cursor.execute("""
+                INSERT INTO calendar_notes (fecha, hora, titulo, tipo, prioridad, notas, completado)
+                VALUES 
+                (?, '11:00', 'Pre-reserva Boda en Sintra (Confirmar con cliente)', 'pre_reserva', 'urgente', 'Cliente pidió guardar fecha tentativa. Llamar para confirmar señal por MB WAY.', 0),
+                (?, '16:00', 'Entrega de Álbum Fine Art + Revisión de Lentes', 'entrega', 'alta', 'Preparar empaque de lujo del atelier antes de las 15:00.', 0)
+            """, (manana, prox_sem))
+
         conn.commit()
     except Exception as e:
         print(f"Advertencia en run_migrations: {e}")

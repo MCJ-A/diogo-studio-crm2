@@ -4,9 +4,10 @@ import {
   Calendar, Euro, Users, AlertTriangle, LayoutDashboard, XCircle, 
   Plus, ArrowUpRight, TrendingUp, ShieldAlert, Sparkles, MessageCircle, 
   ChevronRight, ExternalLink, Camera, Clock, Trophy, Award, Medal, CheckCircle2,
-  FileSignature, Target, Send, ArrowRight
+  FileSignature, Target, Send, ArrowRight, Volume2, VolumeX, Bookmark
 } from 'lucide-react'
 import { formatWhatsAppUrl } from '../utils/whatsapp'
+import { speakText, stopSpeaking, buildDailyBriefingSpeech } from '../utils/voice'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
@@ -16,6 +17,9 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([])
   const [opportunities, setOpportunities] = useState([])
   const [loyalty, setLoyalty] = useState([])
+  const [bookings, setBookings] = useState([])
+  const [calendarNotes, setCalendarNotes] = useState([])
+  const [speaking, setSpeaking] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedFilter, setSelectedFilter] = useState('all')
@@ -23,20 +27,26 @@ export default function Dashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [kRes, aRes, oRes, lRes] = await Promise.all([
+        const [kRes, aRes, oRes, lRes, bRes, nRes] = await Promise.all([
           fetch('/api/dashboard/kpis'),
           fetch('/api/dashboard/alerts'),
           fetch('/api/dashboard/opportunities'),
           fetch('/api/dashboard/loyalty'),
+          fetch('/api/bookings').catch(() => null),
+          fetch('/api/bookings/calendar-notes').catch(() => null),
         ])
         if (!kRes.ok) throw new Error('Error al cargar KPIs')
-        const [kData, aData, oData, lData] = await Promise.all([
-          kRes.json(), aRes.json(), oRes.json(), lRes.json()
+        const [kData, aData, oData, lData, bData, nData] = await Promise.all([
+          kRes.json(), aRes.json(), oRes.json(), lRes.json(),
+          bRes && bRes.ok ? bRes.json() : [],
+          nRes && nRes.ok ? nRes.json() : []
         ])
         setKpis(kData)
         setAlerts(Array.isArray(aData) ? aData : aData.alerts || [])
         setOpportunities(Array.isArray(oData) ? oData : oData.opportunities || [])
         setLoyalty(Array.isArray(lData) ? lData : lData.loyalty || [])
+        setBookings(Array.isArray(bData) ? bData : bData.bookings || [])
+        setCalendarNotes(Array.isArray(nData) ? nData : [])
       } catch (err) {
         setError(err.message)
       } finally {
@@ -44,7 +54,23 @@ export default function Dashboard() {
       }
     }
     load()
+    return () => stopSpeaking()
   }, [])
+
+  const handleSpeakOverview = () => {
+    if (speaking) {
+      stopSpeaking()
+      setSpeaking(false)
+      return
+    }
+    const text = buildDailyBriefingSpeech({ bookings, calendarNotes, alerts })
+    speakText(text, {
+      lang: 'es-ES',
+      onStart: () => setSpeaking(true),
+      onEnd: () => setSpeaking(false),
+      onError: () => setSpeaking(false)
+    })
+  }
 
   if (loading) return (
     <div className="loading-spinner">
@@ -103,10 +129,39 @@ export default function Dashboard() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div className="sync-badge">
-            <Sparkles size={14} style={{ color: 'var(--accent-gold-bright)' }} />
-            <span>Sincronizado</span>
-          </div>
+          <button
+            type="button"
+            onClick={handleSpeakOverview}
+            title="Escuchar briefing hablado del estudio (Manos libres)"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
+              background: speaking ? 'rgba(239, 68, 68, 0.18)' : 'rgba(25, 27, 34, 0.9)',
+              border: speaking ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(232, 176, 114, 0.35)',
+              color: speaking ? '#f87171' : '#e8b072', fontSize: '0.82rem', fontWeight: 600
+            }}
+          >
+            {speaking ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            <span>{speaking ? 'Detener Voz' : 'Escuchar Resumen'}</span>
+          </button>
+
+          {calendarNotes.filter(n => !n.completado).length > 0 && (
+            <button
+              type="button"
+              onClick={() => navigate('/bookings')}
+              title="Ver fechas marcadas y pre-reservas en el calendario"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+                background: 'rgba(245, 185, 85, 0.12)', border: '1px solid rgba(245, 185, 85, 0.3)',
+                color: '#F5B955', fontSize: '0.8rem', fontWeight: 600
+              }}
+            >
+              <Bookmark size={14} />
+              <span>{calendarNotes.filter(n => !n.completado).length} Fechas Marcadas</span>
+            </button>
+          )}
+
           <button 
             className="btn-luxury-primary"
             onClick={() => navigate('/bookings')}
