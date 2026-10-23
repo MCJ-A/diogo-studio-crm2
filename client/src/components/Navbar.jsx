@@ -20,7 +20,7 @@ export default function Navbar() {
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Abrir menú de navegación"
+          aria-label="Abrir menu de navegação"
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -33,8 +33,8 @@ export default function Navbar() {
         <button
           className="mobile-logout-btn"
           onClick={handleLogout}
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
+          aria-label="Terminar sessão"
+          title="Terminar sessão"
         >
           <LogOut size={18} />
         </button>
@@ -79,28 +79,28 @@ export default function Navbar() {
             onClick={closeMenu}
             className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
           >
-            <Calendar size={20} /> Reservas
+            <Calendar size={20} /> Sessões & Agenda
           </NavLink>
           <NavLink
             to="/services"
             onClick={closeMenu}
             className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
           >
-            <Camera size={20} /> Servicios
+            <Camera size={20} /> Serviços
           </NavLink>
           <NavLink
             to="/payments"
             onClick={closeMenu}
             className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
           >
-            <Euro size={20} /> Finanzas
+            <Euro size={20} /> Finanças
           </NavLink>
           <NavLink
             to="/newsletter"
             onClick={closeMenu}
             className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}
           >
-            <Mail size={20} /> Campañas
+            <Mail size={20} /> Campanhas
           </NavLink>
         </nav>
 
@@ -110,7 +110,7 @@ export default function Navbar() {
             className="btn-secondary"
             style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
           >
-            <LogOut size={16} /> Cerrar Sesión
+            <LogOut size={16} /> Terminar Sessão
           </button>
         </div>
       </aside>
@@ -137,28 +137,28 @@ export default function Navbar() {
           className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         >
           <Calendar size={20} />
-          <span>Reservas</span>
+          <span>Agenda</span>
         </NavLink>
         <NavLink
           to="/services"
           className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         >
           <Camera size={20} />
-          <span>Servicios</span>
+          <span>Serviços</span>
         </NavLink>
         <NavLink
           to="/payments"
           className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         >
           <Euro size={20} />
-          <span>Finanzas</span>
+          <span>Finanças</span>
         </NavLink>
         <NavLink
           to="/newsletter"
           className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
         >
           <Mail size={20} />
-          <span>Campañas</span>
+          <span>Campanhas</span>
         </NavLink>
       </nav>
     </>

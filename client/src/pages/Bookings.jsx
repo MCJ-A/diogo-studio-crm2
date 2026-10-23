@@ -14,29 +14,29 @@ import {
   buildSessionBriefingSpeech, startVoiceDictation 
 } from '../utils/voice'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 const fmtDate = d => {
   if (!d) return '—'
   const dateObj = new Date(d.includes('T') ? d : d + 'T00:00:00')
-  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const ESTADOS = [
-  { id: '', label: 'Todos los estados' },
+  { id: '', label: 'Todos os estados' },
   { id: 'Agendada', label: 'Agendada' },
   { id: 'Realizada', label: 'Realizada' },
-  { id: 'Seleccion_pendiente', label: 'Selección' },
-  { id: 'En_edicion', label: 'En Edición' },
-  { id: 'Entregada', label: 'Entregada' },
+  { id: 'Seleccion_pendiente', label: 'Seleção' },
+  { id: 'En_edicion', label: 'Em Edição' },
+  { id: 'Entregada', label: 'Entregue' },
   { id: 'Cancelada', label: 'Cancelada' }
 ]
 
 const PIPELINE_STEPS = [
   { id: 'Agendada', label: 'Agendada' },
   { id: 'Realizada', label: 'Realizada' },
-  { id: 'Seleccion_pendiente', label: 'Selección' },
-  { id: 'En_edicion', label: 'En Edición' },
-  { id: 'Entregada', label: 'Entregada' }
+  { id: 'Seleccion_pendiente', label: 'Seleção' },
+  { id: 'En_edicion', label: 'Em Edição' },
+  { id: 'Entregada', label: 'Entregue' }
 ]
 
 const EMPTY_BOOKING = {
@@ -129,7 +129,7 @@ export default function Bookings() {
 
   const handleCreateCalendarNote = async () => {
     if (!newNoteForm.fecha || !newNoteForm.titulo.trim()) {
-      setError('Fecha y título son obligatorios para marcar una fecha')
+      setError('Data e título são obrigatórios para marcar uma data')
       return
     }
     setActionLoading(true)
@@ -139,12 +139,12 @@ export default function Bookings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newNoteForm)
       })
-      if (!res.ok) throw new Error('Error al guardar fecha marcada')
+      if (!res.ok) throw new Error('Erro ao guardar data marcada')
       await refetchCalendarNotes()
       setSelectedCalendarDate(newNoteForm.fecha)
       setShowMarkDateModal(false)
       setNewNoteForm(EMPTY_NOTE)
-      setSuccessMsg('📌 Fecha marcada y recordatorio activado en el Radar Anti-Olvido')
+      setSuccessMsg('📌 Data marcada e lembrete ativado no Radar Anti-Esquecimento')
       setTimeout(() => setSuccessMsg(null), 3500)
     } catch (e) {
       setError(e.message)
@@ -183,7 +183,7 @@ export default function Bookings() {
     }
     const text = buildDailyBriefingSpeech({ bookings, calendarNotes })
     speakText(text, {
-      lang: 'es-ES',
+      lang: 'pt-PT',
       onStart: () => setSpeaking(true),
       onEnd: () => setSpeaking(false),
       onError: () => setSpeaking(false)
@@ -198,7 +198,7 @@ export default function Bookings() {
     }
     const text = buildSessionBriefingSpeech(booking)
     speakText(text, {
-      lang: 'es-ES',
+      lang: 'pt-PT',
       onStart: () => setSpeaking(true),
       onEnd: () => setSpeaking(false),
       onError: () => setSpeaking(false)
@@ -209,7 +209,7 @@ export default function Bookings() {
     if (dictatingField) return
     setDictatingField(fieldTarget)
     startVoiceDictation({
-      lang: 'es-ES',
+      lang: 'pt-PT',
       onResult: (transcript) => {
         if (fieldTarget === 'detailNotes') {
           setEditingNotes(true)
@@ -270,10 +270,10 @@ export default function Bookings() {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || err.message || 'Error al actualizar estado')
+        throw new Error(err.error || err.message || 'Erro ao atualizar estado')
       }
       await refetchBookings()
-      setSuccessMsg(`Estado actualizado a: ${estado.replace('_', ' ')}`)
+      setSuccessMsg(`Estado atualizado para: ${estado.replace('_', ' ')}`)
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
       setError(err.message)
@@ -294,10 +294,10 @@ export default function Bookings() {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || 'Error al actualizar reserva')
+        throw new Error(err.error || 'Erro ao atualizar marcação')
       }
       await refetchBookings()
-      setSuccessMsg('Reserva actualizada')
+      setSuccessMsg('Marcação atualizada')
       setTimeout(() => setSuccessMsg(null), 2500)
     } catch (err) {
       setError(err.message)
@@ -323,22 +323,22 @@ export default function Bookings() {
     setError(null)
     try {
       const serviceId = parseInt(newBooking.id_servicio || newBooking.service_id)
-      if (!serviceId) throw new Error('Selecciona un servicio fotográfico')
-      if (!newBooking.fecha_sesion) throw new Error('Indica la fecha de la sesión')
+      if (!serviceId) throw new Error('Selecione um serviço fotográfico')
+      if (!newBooking.fecha_sesion) throw new Error('Indique a data da sessão')
 
       const bodyPayload = {
         service_id: serviceId,
         id_servicio: serviceId,
         fecha_sesion: newBooking.fecha_sesion,
         hora_sesion: newBooking.hora_sesion || '10:00',
-        ubicacion: newBooking.ubicacion || 'Estudio Central',
+        ubicacion: newBooking.ubicacion || 'Estúdio Central Diogo, Lisboa',
         contrato_firmado: !!newBooking.contrato_firmado,
         notas_internas: newBooking.notas_internas || ''
       }
 
       if (newBooking.isFastNewClient) {
         if (!newBooking.fastNombre.trim()) {
-          throw new Error('El nombre del nuevo cliente es obligatorio')
+          throw new Error('O nome do novo cliente é obrigatório')
         }
         bodyPayload.nuevo_cliente = {
           nombre: newBooking.fastNombre.trim(),
@@ -347,7 +347,7 @@ export default function Bookings() {
         }
       } else {
         const clientId = parseInt(newBooking.id_cliente || newBooking.client_id)
-        if (!clientId) throw new Error('Selecciona un cliente o usa creación rápida')
+        if (!clientId) throw new Error('Selecione um cliente ou utilize o registo rápido')
         bodyPayload.client_id = clientId
         bodyPayload.id_cliente = clientId
       }
@@ -359,7 +359,7 @@ export default function Bookings() {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || 'Error al crear reserva')
+        throw new Error(err.error || 'Erro ao criar marcação')
       }
       
       await Promise.all([
@@ -369,7 +369,7 @@ export default function Bookings() {
 
       setNewBooking(EMPTY_BOOKING)
       setShowModal(false)
-      setSuccessMsg('Reserva creada exitosamente con beneficios aplicados')
+      setSuccessMsg('Marcação criada com sucesso com benefícios aplicados')
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
       setError(err.message)
@@ -380,23 +380,23 @@ export default function Bookings() {
 
   const exportCSV = () => {
     if (bookings.length === 0) return
-    const headers = ['ID Reserva', 'Cliente', 'WhatsApp', 'Servicio', 'Fecha Sesión', 'Ubicación', 'Estado', 'Monto', 'Contrato Firmado']
+    const headers = ['ID Reserva', 'Cliente', 'WhatsApp', 'Serviço', 'Data Sessão', 'Localização', 'Estado', 'Valor', 'Contrato Assinado']
     const rows = bookings.map(b => [
       `"#RES-${b.id_reserva || b.id}"`,
       `"${b.nombre_cliente || b.cliente_nombre || ''}"`,
       `"${b.telefono_cliente || b.cliente_telefono || ''}"`,
       `"${b.nombre_servicio || b.servicio_nombre || ''}"`,
       b.fecha_sesion || '',
-      `"${b.ubicacion || 'Estudio Central'}"`,
+      `"${b.ubicacion || 'Estúdio Central Diogo'}"`,
       b.estado || 'Agendada',
       b.monto_bruto || 0,
-      b.contrato_firmado ? 'SÍ' : 'NO'
+      b.contrato_firmado ? 'SIM' : 'NÃO'
     ])
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `reservas_diogo_atelier_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute('download', `marcacoes_diogo_atelier_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -423,9 +423,9 @@ export default function Bookings() {
     if (!booking) return null
     const clientName = (booking?.nombre_cliente || booking?.cliente_nombre || 'Estimado/a').split(' ')[0]
     const dateStr = fmtDate(booking?.fecha_sesion)
-    const timeStr = booking?.hora_sesion ? ` a las ${booking.hora_sesion}` : ''
-    const serviceName = booking?.nombre_servicio || booking?.servicio_nombre || 'tu sesión'
-    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio de tu sesión fotográfica (${serviceName}) programada para el ${dateStr}${timeStr}. ¿Todo listo para tu experiencia en el atelier? 📸`
+    const timeStr = booking?.hora_sesion ? ` às ${booking.hora_sesion}` : ''
+    const serviceName = booking?.nombre_servicio || booking?.servicio_nombre || 'a sua sessão'
+    const msg = `Olá ${clientName}! ✨ Daqui é do Diogo Studio. Lembramos da sua sessão fotográfica (${serviceName}) agendada para ${dateStr}${timeStr}. Tudo pronto para a sua experiência no atelier? 📸`
     return formatWhatsAppUrl(booking?.telefono_cliente || booking?.cliente_telefono, msg)
   }
 
@@ -442,7 +442,7 @@ export default function Bookings() {
   // Calendar Helpers
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth()
-  const monthLabel = currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+  const monthLabel = currentMonth.toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' })
   const firstDayOfMonth = new Date(year, month, 1)
   const startOffset = (firstDayOfMonth.getDay() + 6) % 7 // Monday = 0
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -483,7 +483,7 @@ export default function Bookings() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-            Agenda & Reservas
+            Agenda & Marcações
           </h1>
           <span style={{
             fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -509,7 +509,7 @@ export default function Bookings() {
                 transition: 'all 0.15s ease'
               }}
             >
-              <Calendar size={14} /> Calendario
+              <Calendar size={14} /> Calendário
             </button>
             <button
               type="button"
@@ -532,7 +532,7 @@ export default function Bookings() {
           <button
             type="button"
             onClick={handleSpeakDailyBriefing}
-            title="Escuchar resumen hablado de tu agenda y fechas marcadas (Manos libres)"
+            title="Ouvir resumo falado da agenda e datas marcadas (Mãos livres)"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '8px 13px',
@@ -543,7 +543,7 @@ export default function Bookings() {
             }}
           >
             {speaking ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            <span>{speaking ? 'Detener Voz' : 'Escuchar Agenda'}</span>
+            <span>{speaking ? 'Parar Áudio' : 'Ouvir Agenda'}</span>
           </button>
 
           {/* Marcar Fecha X / Recordatorio Anti-Olvido */}
@@ -561,7 +561,7 @@ export default function Bookings() {
             }}
           >
             <Bookmark size={16} style={{ color: '#F5B955' }} />
-            <span>+ Marcar Fecha</span>
+            <span>+ Marcar Data</span>
           </button>
 
           {/* Nueva Reserva */}
@@ -578,7 +578,7 @@ export default function Bookings() {
               transition: 'all 0.15s ease'
             }}
           >
-            <Plus size={18} /> Nueva Reserva
+            <Plus size={18} /> Nova Marcação
           </button>
         </div>
       </div>
@@ -607,10 +607,10 @@ export default function Bookings() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bell size={18} style={{ color: '#F5B955' }} />
               <span style={{ fontWeight: 700, fontSize: '0.92rem', color: '#F8FAFC' }}>
-                Radar Anti-Olvido: {pendingNotes.length} {pendingNotes.length === 1 ? 'Fecha Marcada Pendiente' : 'Fechas Marcadas Pendientes'}
+                Radar Anti-Esquecimento: {pendingNotes.length} {pendingNotes.length === 1 ? 'Marcação Pendente' : 'Marcações Pendentes'}
               </span>
               <span style={{ fontSize: '0.72rem', color: '#94A3B8' }}>
-                (Pre-reservas de palabra, bloqueos o entregas comprometidas)
+                (Pré-reservas faladas, bloqueios de estúdio ou entregas acordadas)
               </span>
             </div>
             <button
@@ -622,14 +622,14 @@ export default function Bookings() {
                 fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5
               }}
             >
-              <Volume2 size={13} /> Leer en voz alta
+              <Volume2 size={13} /> Ler em voz alta
             </button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 10 }}>
             {pendingNotes.slice(0, 4).map(note => {
               const badgeColor = note.tipo === 'bloqueo' ? '#ef4444' : (note.tipo === 'pre_reserva' ? '#F5B955' : (note.tipo === 'entrega' ? '#38bdf8' : '#a855f7'))
-              const badgeLabel = note.tipo === 'bloqueo' ? '⛔ Bloqueo' : (note.tipo === 'pre_reserva' ? '⏳ Pre-Reserva' : (note.tipo === 'entrega' ? '📦 Entrega' : '📌 Recordatorio'))
+              const badgeLabel = note.tipo === 'bloqueo' ? '⛔ Bloqueio' : (note.tipo === 'pre_reserva' ? '⏳ Pré-Reserva' : (note.tipo === 'entrega' ? '📦 Entrega' : '📌 Lembrete'))
               return (
                 <div
                   key={note.id}
@@ -654,7 +654,7 @@ export default function Bookings() {
                       {(note.tipo === 'pre_reserva' || note.tipo === 'recordatorio') && (
                         <button
                           type="button"
-                          title="Convertir en Reserva Formal"
+                          title="Converter em Marcação Formal"
                           onClick={() => {
                             setNewBooking({
                               ...EMPTY_BOOKING,
@@ -674,14 +674,14 @@ export default function Bookings() {
                       )}
                       <button
                         type="button"
-                        title="Marcar como resuelto"
+                        title="Marcar como concluído"
                         onClick={() => handleToggleCalendarNote(note)}
                         style={{
                           background: 'rgba(34,197,94,0.15)', border: 'none', color: '#4ade80',
                           borderRadius: 4, padding: '2px 6px', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer'
                         }}
                       >
-                        ✓ Hecho
+                        ✓ Concluído
                       </button>
                       <button
                         type="button"
@@ -713,9 +713,9 @@ export default function Bookings() {
           border: '1px solid #282f42', boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>En producción</span>
+            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Em produção</span>
             <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC', marginTop: 2 }}>
-              {activasCount} Activas
+              {activasCount} Ativas
             </span>
           </div>
           <div style={{
@@ -732,7 +732,7 @@ export default function Bookings() {
           border: '1px solid #282f42', boxShadow: '0 8px 24px rgba(0,0,0,0.5)'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Listas para envío</span>
+            <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Prontas para entrega</span>
             <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F5B955', marginTop: 2 }}>
               {porEntregarCount} Por entregar
             </span>
@@ -756,7 +756,7 @@ export default function Bookings() {
           <input
             type="text"
             className="form-input"
-            placeholder="Buscar sesión o cliente..."
+            placeholder="Procurar sessão ou cliente..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{
@@ -799,7 +799,7 @@ export default function Bookings() {
               border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
             }}
           >
-            En Edición ({porEntregarCount})
+            Em Edição ({porEntregarCount})
           </button>
           <button
             onClick={() => setFilterEstado('Entregada')}
@@ -810,7 +810,7 @@ export default function Bookings() {
               border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
             }}
           >
-            Entregadas ({entregadasCount})
+            Entregues ({entregadasCount})
           </button>
         </div>
       </div>
@@ -841,7 +841,7 @@ export default function Bookings() {
                         background: '#282a30', border: '1px solid #3b4257', color: '#F8FAFC',
                         borderRadius: 8, padding: '5px 9px', cursor: 'pointer', display: 'flex', alignItems: 'center'
                       }}
-                      title="Mes anterior"
+                      title="Mês anterior"
                     >
                       <ChevronLeft size={16} />
                     </button>
@@ -857,7 +857,7 @@ export default function Bookings() {
                         borderRadius: 8, padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer'
                       }}
                     >
-                      Hoy
+                      Hoje
                     </button>
                     <button
                       type="button"
@@ -866,7 +866,7 @@ export default function Bookings() {
                         background: '#282a30', border: '1px solid #3b4257', color: '#F8FAFC',
                         borderRadius: 8, padding: '5px 9px', cursor: 'pointer', display: 'flex', alignItems: 'center'
                       }}
-                      title="Mes siguiente"
+                      title="Mês seguinte"
                     >
                       <ChevronRight size={16} />
                     </button>
@@ -876,22 +876,22 @@ export default function Bookings() {
                 {/* Color Legend */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: '0.72rem', color: '#94A3B8' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8b072' }} /> Sesión Confirmada
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#e8b072' }} /> Sessão Confirmada
                   </span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F5B955' }} /> Pre-Reserva / Hold
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F5B955' }} /> Pré-Reserva / Hold
                   </span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> Día Bloqueado
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} /> Dia Bloqueado
                   </span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8' }} /> Entrega / Recordatorio
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8' }} /> Entrega / Lembrete
                   </span>
                 </div>
 
                 {/* Weekday Headers */}
                 <div className="atelier-calendar-grid" style={{ marginBottom: -8 }}>
-                  {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(dayName => (
+                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(dayName => (
                     <div
                       key={dayName}
                       style={{
@@ -1010,7 +1010,7 @@ export default function Bookings() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                     <div>
                       <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#e8b072', fontWeight: 700, letterSpacing: '0.06em' }}>
-                        Día Seleccionado
+                        Dia Selecionado
                       </span>
                       <h4 style={{ margin: '2px 0 0 0', color: '#F8FAFC', fontSize: '0.98rem' }}>
                         {fmtDate(selectedCalendarDate)}
@@ -1029,7 +1029,7 @@ export default function Bookings() {
                           fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                         }}
                       >
-                        <Bookmark size={13} style={{ color: '#F5B955' }} /> Marcar esta fecha
+                        <Bookmark size={13} style={{ color: '#F5B955' }} /> Marcar esta data
                       </button>
                       <button
                         type="button"
@@ -1043,14 +1043,14 @@ export default function Bookings() {
                           fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                         }}
                       >
-                        <Plus size={13} /> Agendar en este día
+                        <Plus size={13} /> Agendar neste dia
                       </button>
                     </div>
                   </div>
 
                   {selectedDayBookings.length === 0 && selectedDayNotes.length === 0 ? (
                     <div style={{ fontSize: '0.82rem', color: '#64748B', padding: '6px 0' }}>
-                      Día libre en el estudio. Puedes agendar una sesión o marcar un recordatorio / pre-reserva.
+                      Dia livre no estúdio. Podes agendar uma sessão ou marcar um lembrete / pré-reserva.
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -1104,7 +1104,7 @@ export default function Bookings() {
                                 borderRadius: 6, padding: '3px 8px', fontSize: '0.72rem', cursor: 'pointer'
                               }}
                             >
-                              {n.completado ? 'Reabrir' : '✓ Hecho'}
+                              {n.completado ? 'Reabrir' : '✓ Concluído'}
                             </button>
                             <button
                               type="button"
@@ -1127,12 +1127,12 @@ export default function Bookings() {
                     <Calendar size={18} className="text-accent" />
                     <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC' }}>Agenda Cronológica</span>
                   </div>
-                  <span style={{ fontSize: '0.78rem', color: '#64748B' }}>{filtered.length} registros</span>
+                  <span style={{ fontSize: '0.78rem', color: '#64748B' }}>{filtered.length} registos</span>
                 </div>
 
                 {filtered.length === 0 ? (
                   <div className="no-data" style={{ padding: 40, textAlign: 'center' }}>
-                    No se encontraron reservas con los filtros aplicados.
+                    Não foram encontradas marcações com os filtros aplicados.
                   </div>
                 ) : (
                   <>
@@ -1141,18 +1141,18 @@ export default function Bookings() {
                       <table className="data-table" style={{ width: '100%' }}>
                         <thead>
                           <tr style={{ background: 'rgba(40, 42, 48, 0.6)', color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            <th style={{ padding: '12px 14px' }}>Fecha</th>
+                            <th style={{ padding: '12px 14px' }}>Data</th>
                             <th style={{ padding: '12px 14px' }}>Cliente</th>
-                            <th style={{ padding: '12px 14px' }}>Servicio</th>
+                            <th style={{ padding: '12px 14px' }}>Serviço</th>
                             <th style={{ padding: '12px 14px' }}>Estado</th>
-                            <th style={{ padding: '12px 14px', textAlign: 'right' }}>Presupuesto</th>
+                            <th style={{ padding: '12px 14px', textAlign: 'right' }}>Orçamento</th>
                           </tr>
                         </thead>
                         <tbody>
                           {filtered.map(b => {
                             const isSelected = activeFocusBooking && (activeFocusBooking.id_reserva || activeFocusBooking.id) === (b.id_reserva || b.id)
                             const clientName = b.nombre_cliente || b.cliente_nombre || 'Cliente'
-                            const serviceName = b.nombre_servicio || b.servicio_nombre || 'Servicio'
+                            const serviceName = b.nombre_servicio || b.servicio_nombre || 'Serviço'
 
                             return (
                               <tr
@@ -1182,7 +1182,7 @@ export default function Bookings() {
                                     <div>
                                       <div style={{ fontWeight: 600, color: '#F8FAFC', fontSize: '0.88rem' }}>{clientName}</div>
                                       <div style={{ fontSize: '0.72rem', color: b.contrato_firmado ? '#4ade80' : '#f59e0b' }}>
-                                        {b.contrato_firmado ? '✓ Contrato OK' : '⚠ Sin firmar'}
+                                        {b.contrato_firmado ? '✓ Contrato OK' : '⚠ Por assinar'}
                                       </div>
                                     </div>
                                   </div>
@@ -1211,7 +1211,7 @@ export default function Bookings() {
                       {filtered.map(b => {
                         const isSelected = activeFocusBooking && (activeFocusBooking.id_reserva || activeFocusBooking.id) === (b.id_reserva || b.id)
                         const clientName = b.nombre_cliente || b.cliente_nombre || 'Cliente'
-                        const serviceName = b.nombre_servicio || b.servicio_nombre || 'Servicio'
+                        const serviceName = b.nombre_servicio || b.servicio_nombre || 'Serviço'
 
                         return (
                           <div
@@ -1280,7 +1280,7 @@ export default function Bookings() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Download size={16} className="text-muted" />
-                  <span>Exportar Sesiones (CSV)</span>
+                  <span>Exportar Sessões (CSV)</span>
                 </div>
                 <ChevronRight size={16} className="text-muted" />
               </button>
@@ -1325,7 +1325,7 @@ export default function Bookings() {
                     <button
                       type="button"
                       onClick={() => handleSpeakSessionBriefing(activeFocusBooking)}
-                      title="Escuchar ficha completa de la sesión por voz"
+                      title="Ouvir ficha completa da sessão por voz"
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: 4,
                         background: speaking ? 'rgba(239,68,68,0.2)' : 'rgba(11, 13, 19, 0.85)',
@@ -1335,7 +1335,7 @@ export default function Bookings() {
                       }}
                     >
                       {speaking ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                      <span>{speaking ? 'Callar' : 'Escuchar'}</span>
+                      <span>{speaking ? 'Parar' : 'Ouvir'}</span>
                     </button>
 
                     {/* Inline Status Selector */}
@@ -1360,14 +1360,14 @@ export default function Bookings() {
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                   <div>
                     <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#e8b072', fontWeight: 600 }}>
-                      {activeFocusBooking.nombre_servicio || activeFocusBooking.servicio_nombre || 'Sesión Fotográfica'}
+                      {activeFocusBooking.nombre_servicio || activeFocusBooking.servicio_nombre || 'Sessão Fotográfica'}
                     </span>
                     <h2 style={{ margin: '2px 0 0 0', fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC' }}>
                       {activeFocusBooking.nombre_cliente || activeFocusBooking.cliente_nombre}
                     </h2>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Presupuesto</span>
+                    <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block' }}>Orçamento</span>
                     <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F5B955' }}>
                       {fmt(activeFocusBooking.monto_bruto)}
                     </span>
@@ -1405,9 +1405,9 @@ export default function Bookings() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <Sparkles size={18} style={{ color: activeFocusBooking.autoriza_redes_sociales ? '#4ade80' : '#F5B955', flexShrink: 0 }} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Difusión en Redes / Portfolio</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Divulgação em Redes / Portfólio</span>
                       <span style={{ fontSize: '0.72rem', color: activeFocusBooking.autoriza_redes_sociales ? '#4ade80' : '#F5B955' }}>
-                        {activeFocusBooking.autoriza_redes_sociales ? '✓ Autoriza fotos en Instagram/Web' : '🔒 Confidencial (No publicar)'}
+                        {activeFocusBooking.autoriza_redes_sociales ? '✓ Autoriza fotos no Instagram/Web' : '🔒 Confidencial (Não publicar)'}
                       </span>
                     </div>
                   </div>
@@ -1420,7 +1420,7 @@ export default function Bookings() {
                       cursor: 'pointer'
                     }}
                   >
-                    {activeFocusBooking.autoriza_redes_sociales ? 'Hacer Privado' : 'Autorizar'}
+                    {activeFocusBooking.autoriza_redes_sociales ? 'Tornar Privado' : 'Autorizar'}
                   </button>
                 </div>
 
@@ -1431,7 +1431,7 @@ export default function Bookings() {
                     borderRadius: 10, padding: '10px 14px'
                   }}>
                     <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#e8b072', fontWeight: 700, display: 'block', marginBottom: 3 }}>
-                      Estilo & Notas del Cliente
+                      Estilo & Notas do Cliente
                     </span>
                     <span style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.4 }}>
                       {activeFocusBooking.cliente_notas_estilo}
@@ -1448,9 +1448,9 @@ export default function Bookings() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <FileSignature size={18} style={{ color: activeFocusBooking.contrato_firmado ? '#4ade80' : '#C78D4D', flexShrink: 0 }} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Contrato Legal Atelier</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Contrato Legal do Atelier</span>
                       <span style={{ fontSize: '0.72rem', color: activeFocusBooking.contrato_firmado ? '#4ade80' : '#C78D4D' }}>
-                        {activeFocusBooking.contrato_firmado ? 'Firmado digitalmente' : 'Pendiente de firma digital'}
+                        {activeFocusBooking.contrato_firmado ? 'Assinado digitalmente' : 'Pendente de assinatura digital'}
                       </span>
                     </div>
                   </div>
@@ -1464,7 +1464,7 @@ export default function Bookings() {
                       cursor: 'pointer'
                     }}
                   >
-                    {activeFocusBooking.contrato_firmado ? 'Desmarcar' : 'Marcar Firmado'}
+                    {activeFocusBooking.contrato_firmado ? 'Desmarcar' : 'Marcar como Assinado'}
                   </button>
                 </div>
 
@@ -1472,13 +1472,13 @@ export default function Bookings() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#1e1f26', padding: 12, borderRadius: 10, border: '1px solid #282f42' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
                     <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748B', fontWeight: 600 }}>
-                      Notas Internas del Rodaje
+                      Notas Internas da Produção
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <button
                         type="button"
                         onClick={() => handleDictate('detailNotes')}
-                        title="Dictar nota por micrófono"
+                        title="Ditar nota por microfone"
                         style={{
                           background: dictatingField === 'detailNotes' ? 'rgba(239,68,68,0.2)' : '#282a30',
                           color: dictatingField === 'detailNotes' ? '#f87171' : '#e8b072',
@@ -1486,7 +1486,7 @@ export default function Bookings() {
                           fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                         }}
                       >
-                        <Mic size={12} /> {dictatingField === 'detailNotes' ? 'Escuchando...' : 'Dictar'}
+                        <Mic size={12} /> {dictatingField === 'detailNotes' ? 'A ouvir...' : 'Ditar'}
                       </button>
                       {editingNotes ? (
                         <button
@@ -1511,12 +1511,12 @@ export default function Bookings() {
                       rows={2}
                       value={notesVal}
                       onChange={e => setNotesVal(e.target.value)}
-                      placeholder="Vestuario, atrezzo, iluminación específica..."
+                      placeholder="Guarda-roupa, adereços, iluminação específica..."
                       style={{ background: '#0c0e14', border: '1px solid #282f42', color: '#F8FAFC', borderRadius: 6, padding: 8, fontSize: '0.8rem', width: '100%', resize: 'vertical' }}
                     />
                   ) : (
                     <p style={{ margin: 0, fontSize: '0.8rem', color: activeFocusBooking.notas_internas ? '#cbd5e1' : '#64748B', fontStyle: activeFocusBooking.notas_internas ? 'normal' : 'italic' }}>
-                      {activeFocusBooking.notas_internas || 'Sin notas internas registradas.'}
+                      {activeFocusBooking.notas_internas || 'Sem notas internas registadas.'}
                     </p>
                   )}
                 </div>
@@ -1527,7 +1527,7 @@ export default function Bookings() {
                     background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
                     borderRadius: 8, padding: '10px 12px', color: '#fca5a5', fontSize: '0.8rem'
                   }}>
-                    <strong style={{ display: 'block', color: '#ef4444', marginBottom: 2 }}>Motivo de Cancelación:</strong>
+                    <strong style={{ display: 'block', color: '#ef4444', marginBottom: 2 }}>Motivo de Cancelamento:</strong>
                     {activeFocusBooking.razon_cancelacion}
                   </div>
                 )}
@@ -1584,7 +1584,7 @@ export default function Bookings() {
 
                   <button
                     onClick={() => {
-                      alert(`Hoja de Ruta #RES-${activeFocusBooking.id_reserva || activeFocusBooking.id}\nCliente: ${activeFocusBooking.nombre_cliente || activeFocusBooking.cliente_nombre}\nFecha: ${fmtDate(activeFocusBooking.fecha_sesion)}\nLocación: ${activeFocusBooking.ubicacion || 'Estudio Central'}`)
+                      alert(`Ficha de Produção #RES-${activeFocusBooking.id_reserva || activeFocusBooking.id}\nCliente: ${activeFocusBooking.nombre_cliente || activeFocusBooking.cliente_nombre}\nData: ${fmtDate(activeFocusBooking.fecha_sesion)}\nLocalização: ${activeFocusBooking.ubicacion || 'Estúdio Central'}`)
                     }}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -1593,7 +1593,7 @@ export default function Bookings() {
                     }}
                   >
                     <FileText size={18} style={{ color: '#e8b072' }} />
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Hoja de Ruta</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Ficha de Produção</span>
                   </button>
 
                   {activeFocusBooking.url_galeria ? (
@@ -1608,12 +1608,12 @@ export default function Bookings() {
                       }}
                     >
                       <ImageIcon size={18} style={{ color: '#e8b072' }} />
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Ver Galería</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Ver Galeria</span>
                     </a>
                   ) : (
                     <button
                       onClick={() => {
-                        const url = prompt('Ingrese URL de la galería fotográfica:')
+                        const url = prompt('Insere o URL da galeria fotográfica:')
                         if (url) {
                           fetch(`/api/bookings/${activeFocusBooking.id_reserva || activeFocusBooking.id}`, {
                             method: 'PATCH',
@@ -1629,7 +1629,7 @@ export default function Bookings() {
                       }}
                     >
                       <ImageIcon size={18} style={{ color: '#64748B' }} />
-                      <span style={{ fontSize: '0.75rem' }}>+ Galería</span>
+                      <span style={{ fontSize: '0.75rem' }}>+ Galeria</span>
                     </button>
                   )}
                 </div>
@@ -1641,7 +1641,7 @@ export default function Bookings() {
                       onClick={() => setShowCancelForm(true)}
                       style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.75rem', cursor: 'pointer' }}
                     >
-                      Cancelar esta reserva
+                      Cancelar esta marcação
                     </button>
                   </div>
                 ) : (
@@ -1652,7 +1652,7 @@ export default function Bookings() {
                       rows={2}
                       value={cancelReason}
                       onChange={e => setCancelReason(e.target.value)}
-                      placeholder="Ej. Reprogramación..."
+                      placeholder="Ex: Reagendamento..."
                       style={{ fontSize: '0.8rem' }}
                     />
                     <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
@@ -1666,7 +1666,7 @@ export default function Bookings() {
                       >
                         Confirmar
                       </button>
-                      <button className="btn-secondary btn-sm" onClick={() => setShowCancelForm(false)}>Atrás</button>
+                      <button className="btn-secondary btn-sm" onClick={() => setShowCancelForm(false)}>Voltar</button>
                     </div>
                   </div>
                 )}
@@ -1677,9 +1677,9 @@ export default function Bookings() {
           ) : (
             <div style={{ background: '#191b22', borderRadius: 14, padding: 40, textAlign: 'center', border: '1px solid #282f42' }}>
               <Calendar size={36} className="text-muted" style={{ margin: '0 auto 12px auto', opacity: 0.5 }} />
-              <div style={{ fontWeight: 600, color: '#F8FAFC' }}>Ninguna sesión seleccionada</div>
+              <div style={{ fontWeight: 600, color: '#F8FAFC' }}>Nenhuma sessão selecionada</div>
               <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 4 }}>
-                Selecciona una reserva para ver sus detalles.
+                Seleciona uma marcação para ver os seus detalhes.
               </div>
             </div>
           )}
@@ -1687,13 +1687,13 @@ export default function Bookings() {
 
       </div>
 
-      {/* Modal: Nueva Reserva */}
+      {/* Modal: Nova Marcação */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: 520 }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Calendar size={20} className="text-accent" /> Nueva Reserva Fotográfica
+                <Calendar size={20} className="text-accent" /> Nova Marcação Fotográfica
               </h3>
               <button className="modal-close" onClick={() => setShowModal(false)}><XCircle size={20}/></button>
             </div>
@@ -1723,7 +1723,7 @@ export default function Bookings() {
                     color: newBooking.isFastNewClient ? '#F5B955' : '#94A3B8'
                   }}
                 >
-                  <UserPlus size={14} style={{ display: 'inline', marginRight: 5 }} /> + Alta Rápida de Cliente
+                  <UserPlus size={14} style={{ display: 'inline', marginRight: 5 }} /> + Registo Rápido de Cliente
                 </button>
               </div>
 
@@ -1735,7 +1735,7 @@ export default function Bookings() {
                     value={newBooking.id_cliente} 
                     onChange={e => setNewBooking({...newBooking, id_cliente: e.target.value})}
                   >
-                    <option value="">Seleccione un cliente...</option>
+                    <option value="">Seleciona um cliente...</option>
                     {clients.map(c => (
                       <option key={c.id_cliente || c.id} value={c.id_cliente || c.id}>
                         {c.nombre} {c.telefono ? `(${c.telefono})` : ''} {c.descuento_sugerido_pct ? `— [VIP ${c.descuento_sugerido_pct}%]` : ''}
@@ -1758,12 +1758,12 @@ export default function Bookings() {
                           fontSize: '0.78rem', color: '#F5B955'
                         }}>
                           <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Sparkles size={14} /> Beneficio Fidelidad VIP ({discount}% Descuento)
+                            <Sparkles size={14} /> Benefício Fidelização VIP ({discount}% Desconto)
                           </div>
                           <div style={{ color: '#cbd5e1', marginTop: 2 }}>
                             {selService 
-                              ? `Tarifa Original: ${fmt(basePrice)} → Final con VIP: ${fmt(finalPrice)}`
-                              : 'El descuento del ' + discount + '% se aplicará automáticamente al total.'}
+                              ? `Tarifa Original: ${fmt(basePrice)} → Final com VIP: ${fmt(finalPrice)}`
+                              : `O desconto de ${discount}% será aplicado automaticamente ao total.`}
                           </div>
                         </div>
                       )
@@ -1774,21 +1774,21 @@ export default function Bookings() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#191b22', padding: 12, borderRadius: 8, border: '1px solid #282f42', marginBottom: 14 }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e8b072', textTransform: 'uppercase' }}>
-                    Alta Rápida de Cliente
+                    Registo Rápido de Cliente
                   </span>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Nombre Completo *</label>
+                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Nome Completo *</label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="Ej: Sofia Loren"
+                      placeholder="Ex: Sofia Loren"
                       value={newBooking.fastNombre}
                       onChange={e => setNewBooking({ ...newBooking, fastNombre: e.target.value })}
                     />
                   </div>
                   <div className="form-row" style={{ margin: 0 }}>
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.78rem' }}>Teléfono (WhatsApp)</label>
+                      <label className="form-label" style={{ fontSize: '0.78rem' }}>Telemóvel (WhatsApp)</label>
                       <input
                         type="tel"
                         className="form-input"
@@ -1812,13 +1812,13 @@ export default function Bookings() {
               )}
 
               <div className="form-group">
-                <label className="form-label">Servicio Fotográfico *</label>
+                <label className="form-label">Serviço Fotográfico *</label>
                 <select 
                   className="form-input" 
                   value={newBooking.id_servicio} 
                   onChange={e => setNewBooking({...newBooking, id_servicio: e.target.value})}
                 >
-                  <option value="">Seleccione un servicio...</option>
+                  <option value="">Seleciona um serviço...</option>
                   {services.filter(s => s.activo !== 0).map(s => (
                     <option key={s.id_servicio || s.id} value={s.id_servicio || s.id}>
                       {s.nombre} — {fmt(s.precio_base)}
@@ -1829,7 +1829,7 @@ export default function Bookings() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Fecha de Sesión *</label>
+                  <label className="form-label">Data da Sessão *</label>
                   <input 
                     type="date" 
                     className="form-input" 
@@ -1838,7 +1838,7 @@ export default function Bookings() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Hora de Sesión</label>
+                  <label className="form-label">Hora da Sessão</label>
                   <input 
                     type="time" 
                     className="form-input" 
@@ -1860,11 +1860,11 @@ export default function Bookings() {
                     fontSize: '0.78rem', color: '#fca5a5'
                   }}>
                     <div style={{ fontWeight: 700, color: '#f87171', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <AlertTriangle size={15} /> ¡Atención! Ya tienes actividad marcada en esta fecha ({fmtDate(newBooking.fecha_sesion)}):
+                      <AlertTriangle size={15} /> Atenção! Já tens atividade marcada nesta data ({fmtDate(newBooking.fecha_sesion)}):
                     </div>
                     {sameDayBookings.map(b => (
                       <div key={`col-b-${b.id_reserva || b.id}`}>
-                        • 📸 Sesión {b.hora_sesion || '10:00'} hs: <strong>{b.nombre_cliente || b.cliente_nombre}</strong> ({b.nombre_servicio || b.servicio_nombre})
+                        • 📸 Sessão {b.hora_sesion || '10:00'} hs: <strong>{b.nombre_cliente || b.cliente_nombre}</strong> ({b.nombre_servicio || b.servicio_nombre})
                       </div>
                     ))}
                     {sameDayNotes.map(n => (
@@ -1877,7 +1877,7 @@ export default function Bookings() {
               })()}
 
               <div className="form-group">
-                <label className="form-label">Locación (opcional)</label>
+                <label className="form-label">Localização (opcional)</label>
                 <input 
                   type="text" 
                   className="form-input" 
@@ -1889,7 +1889,7 @@ export default function Bookings() {
 
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label className="form-label" style={{ margin: 0 }}>Notas Internas de Rodaje (Opcional)</label>
+                  <label className="form-label" style={{ margin: 0 }}>Notas Internas de Produção (Opcional)</label>
                   <button
                     type="button"
                     onClick={() => handleDictate('newBookingNotes')}
@@ -1900,7 +1900,7 @@ export default function Bookings() {
                       fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                     }}
                   >
-                    <Mic size={12} /> {dictatingField === 'newBookingNotes' ? 'Escuchando...' : 'Dictar por voz'}
+                    <Mic size={12} /> {dictatingField === 'newBookingNotes' ? 'A ouvir...' : 'Ditar por voz'}
                   </button>
                 </div>
                 <textarea
@@ -1908,7 +1908,7 @@ export default function Bookings() {
                   rows={2}
                   value={newBooking.notas_internas}
                   onChange={e => setNewBooking({ ...newBooking, notas_internas: e.target.value })}
-                  placeholder="Detalles de estilismo, vestuario, ideas..."
+                  placeholder="Detalhes de estilismo, guarda-roupa, ideias..."
                 />
               </div>
 
@@ -1920,7 +1920,7 @@ export default function Bookings() {
                     onChange={e => setNewBooking({...newBooking, contrato_firmado: e.target.checked})}
                     style={{ width: 16, height: 16, accentColor: '#e8b072' }}
                   />
-                  <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Marcar contrato como firmado digitalmente</span>
+                  <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Marcar contrato como assinado digitalmente</span>
                 </label>
               </div>
             </div>
@@ -1933,32 +1933,32 @@ export default function Bookings() {
                 onClick={handleCreate}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <CheckCircle size={16} /> {creating ? 'Guardando...' : 'Crear Reserva'}
+                <CheckCircle size={16} /> {creating ? 'A guardar...' : 'Criar Marcação'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal: Marcar Fecha X / Recordatorio Anti-Olvido */}
+      {/* Modal: Marcar Data / Lembrete Anti-Esquecimento */}
       {showMarkDateModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Bookmark size={20} style={{ color: '#F5B955' }} /> Marcar Fecha / Recordatorio
+                <Bookmark size={20} style={{ color: '#F5B955' }} /> Marcar Data / Lembrete
               </h3>
               <button className="modal-close" onClick={() => setShowMarkDateModal(false)}><XCircle size={20}/></button>
             </div>
 
             <div className="modal-body">
               <p style={{ margin: '0 0 12px 0', fontSize: '0.8rem', color: '#94A3B8' }}>
-                ¿Un cliente te pidió guardar una fecha de palabra, tienes mantenimiento de equipo o debes entregar un álbum? Márcalo aquí en 5 segundos (o díctalo por voz) para que el sistema te avise y evite dobles reservas.
+                Um cliente pediu para guardar uma data verbalmente, tens manutenção de equipamento ou entrega de álbum? Marca aqui em 5 segundos (ou dita por voz) para que o sistema te avise e evite marcações duplas.
               </p>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Fecha Marcada *</label>
+                  <label className="form-label">Data Marcada *</label>
                   <input
                     type="date"
                     className="form-input"
@@ -1978,22 +1978,22 @@ export default function Bookings() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Tipo de Marca</label>
+                <label className="form-label">Tipo de Marcação</label>
                 <select
                   className="form-input"
                   value={newNoteForm.tipo}
                   onChange={e => setNewNoteForm({ ...newNoteForm, tipo: e.target.value })}
                 >
-                  <option value="pre_reserva">⏳ Pre-Reserva / Fecha hablada sin señal</option>
-                  <option value="bloqueo">⛔ Día Bloqueado (No agendar sesiones)</option>
-                  <option value="entrega">📦 Compromiso de Entrega / Álbum</option>
-                  <option value="recordatorio">📌 Recordatorio Operativo</option>
+                  <option value="pre_reserva">⏳ Pré-Reserva / Data falada sem sinal</option>
+                  <option value="bloqueo">⛔ Dia Bloqueado (Não agendar sessões)</option>
+                  <option value="entrega">📦 Compromisso de Entrega / Álbum</option>
+                  <option value="recordatorio">📌 Lembrete Operacional</option>
                 </select>
               </div>
 
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label className="form-label" style={{ margin: 0 }}>Título / Qué no debes olvidar *</label>
+                  <label className="form-label" style={{ margin: 0 }}>Título / O que não deves esquecer *</label>
                   <button
                     type="button"
                     onClick={() => handleDictate('markDateTitle')}
@@ -2004,13 +2004,13 @@ export default function Bookings() {
                       fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                     }}
                   >
-                    <Mic size={12} /> {dictatingField === 'markDateTitle' ? 'Escuchando...' : 'Dictar'}
+                    <Mic size={12} /> {dictatingField === 'markDateTitle' ? 'A ouvir...' : 'Ditar'}
                   </button>
                 </div>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Ej: Pre-reserva Boda Inês & Tiago en Sintra"
+                  placeholder="Ex: Pré-reserva Casamento Inês & Tiago em Sintra"
                   value={newNoteForm.titulo}
                   onChange={e => setNewNoteForm({ ...newNoteForm, titulo: e.target.value })}
                 />
@@ -2018,7 +2018,7 @@ export default function Bookings() {
 
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <label className="form-label" style={{ margin: 0 }}>Detalles adicionales (Opcional)</label>
+                  <label className="form-label" style={{ margin: 0 }}>Detalhes adicionais (Opcional)</label>
                   <button
                     type="button"
                     onClick={() => handleDictate('markDateNotes')}
@@ -2029,13 +2029,13 @@ export default function Bookings() {
                       fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4
                     }}
                   >
-                    <Mic size={12} /> {dictatingField === 'markDateNotes' ? 'Escuchando...' : 'Dictar'}
+                    <Mic size={12} /> {dictatingField === 'markDateNotes' ? 'A ouvir...' : 'Ditar'}
                   </button>
                 </div>
                 <textarea
                   className="form-textarea"
                   rows={2}
-                  placeholder="Ej: Confirmar pago de señal por MB WAY antes del viernes..."
+                  placeholder="Ex: Confirmar pagamento do sinal por MB WAY antes de sexta-feira..."
                   value={newNoteForm.notas}
                   onChange={e => setNewNoteForm({ ...newNoteForm, notas: e.target.value })}
                 />
@@ -2050,7 +2050,7 @@ export default function Bookings() {
                 onClick={handleCreateCalendarNote}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <Bookmark size={16} /> Guardar Fecha Marcada
+                <Bookmark size={16} /> Guardar Data Marcada
               </button>
             </div>
           </div>

@@ -40,13 +40,13 @@ def get_email_status():
     cfg = get_email_config()
     provider = cfg['provider']
     if provider == 'smtp':
-        msg = f"Servidor SMTP activo ({cfg['smtp_host']}:{cfg['smtp_port']})"
+        msg = f"Servidor SMTP ativo ({cfg['smtp_host']}:{cfg['smtp_port']})"
     elif provider == 'resend':
-        msg = "API de Resend activa"
+        msg = "API do Resend ativa"
     elif provider == 'brevo':
-        msg = "API de Brevo activa"
+        msg = "API do Brevo ativa"
     else:
-        msg = "Modo Sandbox / Simulado activo (configure variables SMTP en Render o .env para envíos reales)"
+        msg = "Modo Sandbox / Simulação ativo (configura variáveis SMTP no Render ou .env para envios reais)"
 
     return {
         'provider': provider,
@@ -56,13 +56,13 @@ def get_email_status():
         'message': msg
     }
 
-def render_email_html(titulo, contenido_parrafos, boton_texto='Agendar mi Sesión', boton_url='https://wa.me/', nombre_cliente=''):
-    greeting = f"¡Hola, {nombre_cliente}!" if nombre_cliente else "¡Hola!"
+def render_email_html(titulo, contenido_parrafos, boton_texto='Agendar a Minha Sessão', boton_url='https://wa.me/', nombre_cliente=''):
+    greeting = f"Olá, {nombre_cliente}!" if nombre_cliente else "Olá!"
     lines = [p.strip() for p in contenido_parrafos.splitlines() if p.strip()]
     paragraphs_html = ''.join([f"<p style='margin: 0 0 16px 0; line-height: 1.6; color: #d1d5db; font-size: 15px;'>{p}</p>" for p in lines])
 
     html = f"""<!DOCTYPE html>
-<html lang='es'>
+<html lang='pt'>
 <head>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
@@ -79,7 +79,7 @@ def render_email_html(titulo, contenido_parrafos, boton_texto='Agendar mi Sesió
               <div style='display: inline-block; padding: 8px 14px; background: rgba(217, 119, 6, 0.15); border-radius: 8px; border: 1px solid rgba(217, 119, 6, 0.3); margin-bottom: 8px;'>
                 <span style='color: #f59e0b; font-size: 18px; font-weight: bold; letter-spacing: 2px;'>DIOGO STUDIO</span>
               </div>
-              <div style='color: #9ca3af; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;'>Fotografía Profesional & Experiencias</div>
+              <div style='color: #9ca3af; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;'>Fotografia Profissional & Experiências</div>
             </td>
           </tr>
 
@@ -106,10 +106,10 @@ def render_email_html(titulo, contenido_parrafos, boton_texto='Agendar mi Sesió
           <tr>
             <td style='background-color: #0d121f; padding: 24px 30px; text-align: center; border-top: 1px solid #1f2937;'>
               <p style='margin: 0 0 8px 0; font-size: 12px; color: #6b7280;'>
-                Diogo Studio • Sesiones de Pareja, Maternidad, Bodas y Familias
+                Diogo Studio • Sessões de Casal, Maternidade, Casamentos e Família
               </p>
               <p style='margin: 0; font-size: 11px; color: #4b5563;'>
-                Recibes este mensaje porque eres cliente registrado en Diogo Studio.
+                Recebeste este e-mail porque és um cliente registado no Diogo Studio.
               </p>
             </td>
           </tr>
@@ -131,7 +131,7 @@ def send_single_email(to_email, subject, html_content, to_name=''):
             'provider': 'sandbox',
             'simulated': True,
             'to': to_email,
-            'message': f'Correo a {to_email} simulado con éxito (modo Sandbox)'
+            'message': f'E-mail para {to_email} simulado com sucesso (modo Sandbox)'
         }
 
     if provider == 'smtp':

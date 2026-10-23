@@ -2,7 +2,7 @@ import { Target, Calendar, MessageCircle, Heart, Cake, Clock, ExternalLink } fro
 import { useNavigate } from 'react-router-dom'
 import { formatWhatsAppUrl } from '../utils/whatsapp'
 
-const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—'
+const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' }) : '—'
 
 function OpportunityWidget({ opportunities = [] }) {
   const navigate = useNavigate()
@@ -13,7 +13,7 @@ function OpportunityWidget({ opportunities = [] }) {
         <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Target size={20} className="text-accent" /> Oportunidades & Recontacto
         </div>
-        <div className="widget-empty">Sin oportunidades pendientes de recontacto</div>
+        <div className="widget-empty">Sem oportunidades de recontacto pendentes</div>
       </div>
     )
   }
@@ -25,7 +25,7 @@ function OpportunityWidget({ opportunities = [] }) {
       </div>
       <div className="widget-list">
         {opportunities.map((o, i) => {
-          const pitch = o.whatsapp_pitch || `¡Hola ${o.nombre}! Te saludamos de Diogo Studio...`
+          const pitch = o.whatsapp_pitch || `Olá ${o.nombre}! Falamos do Diogo Studio...`
           const waUrl = formatWhatsAppUrl(o.telefono, pitch)
           const isAniv = o.tipo === 'aniversario'
           const isBday = o.tipo === 'cumpleanos'
@@ -68,7 +68,7 @@ function OpportunityWidget({ opportunities = [] }) {
                     rel="noopener noreferrer"
                     className="btn-primary btn-sm"
                     style={{ display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', padding: '6px 10px', fontSize: '0.8rem' }}
-                    title="Enviar mensaje personalizado por WhatsApp"
+                    title="Enviar mensagem personalizada pelo WhatsApp"
                   >
                     <MessageCircle size={14} /> WhatsApp
                   </a>
@@ -78,7 +78,7 @@ function OpportunityWidget({ opportunities = [] }) {
                     className="btn-secondary btn-sm"
                     onClick={() => navigate(`/clients/${o.id}`)}
                     style={{ padding: '6px 8px' }}
-                    title="Ver perfil completo del cliente"
+                    title="Ver ficha completa do cliente"
                   >
                     <ExternalLink size={14} />
                   </button>

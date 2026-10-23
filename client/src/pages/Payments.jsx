@@ -8,11 +8,11 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import { formatWhatsAppUrl } from '../utils/whatsapp'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 const fmtDate = d => {
   if (!d) return '—'
   const dateObj = new Date(d.includes('T') ? d : d + 'T00:00:00')
-  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const getInitials = (name = '') => {
@@ -40,7 +40,7 @@ export default function Payments() {
   // Modal extras / upsell
   const [showExtraModal, setShowExtraModal] = useState(false)
   const [extraAmount, setExtraAmount] = useState('')
-  const [extraConcept, setExtraConcept] = useState('5 Fotos Retocadas Adicionales')
+  const [extraConcept, setExtraConcept] = useState('5 Fotos Retocadas Adicionais')
 
   const editRef = useRef(null)
 
@@ -51,7 +51,7 @@ export default function Payments() {
   const fetchBookings = async () => {
     try {
       const res = await fetch('/api/bookings')
-      if (!res.ok) throw new Error('Error al cargar transacciones y pagos')
+      if (!res.ok) throw new Error('Erro ao carregar transações e pagamentos')
       const data = await res.json()
       const list = Array.isArray(data) ? data : data.bookings || []
       setBookings(list)
@@ -109,7 +109,7 @@ export default function Payments() {
     if (!selected || !abonoAmount) return
     const amountVal = parseFloat(abonoAmount)
     if (isNaN(amountVal) || amountVal <= 0) {
-      setError('Por favor ingrese un monto válido mayor a 0.')
+      setError('Por favor insere um montante válido superior a 0.')
       return
     }
 
@@ -160,14 +160,14 @@ export default function Payments() {
 
       if (!res.ok) {
         const errJson = await res.json()
-        throw new Error(errJson.error || 'Error al registrar abono')
+        throw new Error(errJson.error || 'Erro ao registar pagamento')
       }
 
       await fetchBookings()
       setShowAbonoModal(false)
       setAbonoAmount('')
       setAbonoNotes('')
-      setSuccessMsg(`Abono de ${fmt(amountVal)} registrado con éxito para ${selected.nombre_cliente || selected.cliente_nombre}`)
+      setSuccessMsg(`Pagamento de ${fmt(amountVal)} registado com sucesso para ${selected.nombre_cliente || selected.cliente_nombre}`)
       setTimeout(() => setSuccessMsg(null), 3500)
     } catch (e) {
       setError(e.message)
@@ -181,7 +181,7 @@ export default function Payments() {
     if (!selected || !extraAmount) return
     const extraVal = parseFloat(extraAmount)
     if (isNaN(extraVal) || extraVal <= 0) {
-      setError('Por favor ingrese un monto válido para el extra.')
+      setError('Por favor insere um montante válido para o extra.')
       return
     }
 
@@ -201,7 +201,7 @@ export default function Payments() {
 
       const notaExtra = extraConcept.trim() 
         ? `Extra: ${extraConcept.trim()} (+${fmt(extraVal)})`
-        : `Extra agregado (+${fmt(extraVal)})`
+        : `Extra adicionado (+${fmt(extraVal)})`
       const currentNotas = selected.notas_pago || ''
       const nuevasNotas = currentNotas ? `${currentNotas} | ${notaExtra}` : notaExtra
 
@@ -234,14 +234,14 @@ export default function Payments() {
 
       if (!res.ok) {
         const errJson = await res.json()
-        throw new Error(errJson.error || 'Error al añadir extra')
+        throw new Error(errJson.error || 'Erro ao adicionar extra')
       }
 
       await fetchBookings()
       setShowExtraModal(false)
       setExtraAmount('')
-      setExtraConcept('5 Fotos Retocadas Adicionales')
-      setSuccessMsg(`Extra de ${fmt(extraVal)} añadido exitosamente al presupuesto`)
+      setExtraConcept('5 Fotos Retocadas Adicionais')
+      setSuccessMsg(`Extra de ${fmt(extraVal)} adicionado com sucesso ao orçamento`)
       setTimeout(() => setSuccessMsg(null), 3500)
     } catch (e) {
       setError(e.message)
@@ -252,7 +252,7 @@ export default function Payments() {
 
   const exportCSV = () => {
     if (bookings.length === 0) return
-    const headers = ['Ref Liquidacion', 'Cliente', 'WhatsApp', 'Servicio', 'Fecha Sesion', 'Total Presupuestado', 'Anticipo Recibido', 'Saldo Exigible', 'Estado', 'Metodo Pago']
+    const headers = ['Ref Liquidacao', 'Cliente', 'WhatsApp', 'Servico', 'Data Sessao', 'Total Orcamentado', 'Sinal Recebido', 'Saldo Exigivel', 'Estado', 'Metodo Pagamento']
     const rows = bookings.map(b => {
       const bruto = parseFloat(b.monto_bruto) || 0
       const desc = parseFloat(b.descuento_aplicado || b.descuento) || 0
@@ -268,14 +268,14 @@ export default function Payments() {
         anti,
         saldo,
         b.estado_pago || 'Pendiente',
-        `"${b.metodo_pago || 'Transferencia Bancaria'}"`
+        `"${b.metodo_pago || 'Transferência Bancária'}"`
       ]
     })
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `finanzas_diogo_atelier_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute('download', `financas_diogo_atelier_${new Date().toISOString().split('T')[0]}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -288,7 +288,7 @@ export default function Payments() {
     const desc = parseFloat(b.descuento_aplicado || b.descuento) || 0
     const anti = parseFloat(b.anticipo_pagado || b.anticipo) || 0
     const saldo = Math.max(0, bruto - desc - anti)
-    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio amistoso sobre el balance pendiente de ${fmt(saldo)} para tu próxima sesión (${b.nombre_servicio || b.servicio_nombre}). ¿Deseas que te facilitemos las opciones de pago (MB WAY / Transferencia / Multibanco)? 💳`
+    const msg = `Olá ${clientName}! ✨ Saudações do Diogo Studio. Enviamos este lembrete amigável sobre o saldo pendente de ${fmt(saldo)} para a tua próxima sessão (${b.nombre_servicio || b.servicio_nombre}). Gostarias de verificar as opções de pagamento (MB WAY / Transferência / Multibanco)? 💳`
     return formatWhatsAppUrl(b.telefono_cliente || b.cliente_telefono, msg)
   }
 
@@ -310,11 +310,11 @@ export default function Payments() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <CreditCard size={28} className="text-accent" />
             <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-              Finanzas & Liquidaciones
+              Finanças & Liquidações
             </h1>
           </div>
           <p style={{ margin: 0, color: '#94A3B8', fontSize: '0.88rem' }}>
-            Control de flujos, anticipos recibidos y balances por sesión de alta gama.
+            Controlo de fluxos, sinais recebidos e saldos por sessão de alta gama.
           </p>
         </div>
 
@@ -329,7 +329,7 @@ export default function Payments() {
               cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'all 0.15s ease'
             }}
           >
-            <Download size={16} style={{ color: '#C78D4D' }} /> Exportar Libro CSV
+            <Download size={16} style={{ color: '#C78D4D' }} /> Exportar Livro CSV
           </button>
           <button
             onClick={() => setShowAbonoModal(true)}
@@ -340,7 +340,7 @@ export default function Payments() {
               cursor: 'pointer', boxShadow: '0 0 24px rgba(232,176,114,0.25)', transition: 'all 0.15s ease'
             }}
           >
-            <Plus size={18} /> Registrar Abono / Factura
+            <Plus size={18} /> Registar Pagamento / Fatura
           </button>
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function Payments() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
-              Total Recaudado
+              Total Cobrado
             </span>
             <div style={{
               width: 32, height: 32, borderRadius: '50%', background: '#282a30',
@@ -383,7 +383,7 @@ export default function Payments() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', color: '#4ade80' }}>
             <TrendingUp size={14} />
-            <span>{completadasCount} liquidaciones completadas</span>
+            <span>{completadasCount} liquidações concluídas</span>
           </div>
         </div>
 
@@ -410,7 +410,7 @@ export default function Payments() {
             <span style={{ fontSize: '0.75rem', color: 'rgba(255, 180, 171, 0.8)', fontWeight: 600 }}>EUR</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', color: '#94A3B8' }}>
-            <span>{pendientesCount} sesiones con saldo pendiente</span>
+            <span>{pendientesCount} sessões com saldo pendente</span>
           </div>
         </div>
 
@@ -421,7 +421,7 @@ export default function Payments() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
-              Registros Operativos
+              Registos Operacionais
             </span>
             <div style={{
               width: 32, height: 32, borderRadius: '50%', background: '#282a30',
@@ -434,11 +434,11 @@ export default function Payments() {
             <span style={{ fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.02em' }}>
               {bookings.length}
             </span>
-            <span style={{ fontSize: '0.78rem', color: '#64748B' }}>sesiones activas</span>
+            <span style={{ fontSize: '0.78rem', color: '#64748B' }}>sessões ativas</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', color: '#94A3B8' }}>
             <CheckCircle size={14} style={{ color: '#adddff' }} />
-            <span>Total presupuestado: {fmt(totalMontoBruto)}</span>
+            <span>Total orçamentado: {fmt(totalMontoBruto)}</span>
           </div>
         </div>
 
@@ -455,12 +455,12 @@ export default function Payments() {
             <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Receipt size={18} style={{ color: '#C78D4D' }} />
-                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC' }}>Todos los Pagos</span>
+                <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC' }}>Todos os Pagamentos</span>
                 <span style={{
                   padding: '2px 8px', borderRadius: 20, background: '#1e1f26',
                   color: '#F5B955', fontSize: '0.72rem', fontWeight: 600
                 }}>
-                  {bookings.length} totales
+                  {bookings.length} totais
                 </span>
               </div>
 
@@ -484,7 +484,7 @@ export default function Payments() {
                     color: filterStatus === 'Pendiente' ? '#F5B955' : '#64748B'
                   }}
                 >
-                  Pendiente
+                  Pendente
                 </button>
                 <button
                   onClick={() => setFilterStatus('Completado')}
@@ -494,7 +494,7 @@ export default function Payments() {
                     color: filterStatus === 'Completado' ? '#F5B955' : '#64748B'
                   }}
                 >
-                  Completado
+                  Concluído
                 </button>
                 <button
                   onClick={() => setFilterStatus('Parcial')}
@@ -516,7 +516,7 @@ export default function Payments() {
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="Buscar por nombre de cliente o tipo de sesión..."
+                  placeholder="Pesquisar por nome de cliente ou tipo de sessão..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   style={{
@@ -529,7 +529,7 @@ export default function Payments() {
 
             {filteredBookings.length === 0 ? (
               <div className="no-data" style={{ padding: 40, textAlign: 'center' }}>
-                No se encontraron registros de pago.
+                Não foram encontrados registos de pagamento.
               </div>
             ) : (
               <>
@@ -539,10 +539,10 @@ export default function Payments() {
                     <thead>
                       <tr style={{ background: 'rgba(12, 14, 20, 0.6)', color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         <th style={{ padding: '12px 18px' }}>Cliente</th>
-                        <th style={{ padding: '12px 14px' }}>Fecha</th>
+                        <th style={{ padding: '12px 14px' }}>Data</th>
                         <th style={{ padding: '12px 14px' }}>Saldo</th>
                         <th style={{ padding: '12px 14px' }}>Estado</th>
-                        <th style={{ padding: '12px 18px', textAlign: 'right' }}>Acción</th>
+                        <th style={{ padding: '12px 18px', textAlign: 'right' }}>Ação</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -604,7 +604,7 @@ export default function Payments() {
                                 background: status === 'Completado' ? 'rgba(34, 197, 94, 0.15)' : status === 'Parcial' ? 'rgba(173, 221, 255, 0.15)' : 'rgba(245, 185, 85, 0.15)',
                                 color: status === 'Completado' ? '#4ade80' : status === 'Parcial' ? '#adddff' : '#F5B955'
                               }}>
-                                {status}
+                                {status === 'Completado' ? 'Concluído' : status}
                               </span>
                             </td>
 
@@ -667,7 +667,7 @@ export default function Payments() {
                             background: status === 'Completado' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 185, 85, 0.15)',
                             color: status === 'Completado' ? '#4ade80' : '#F5B955'
                           }}>
-                            {status}
+                            {status === 'Completado' ? 'Concluído' : status}
                           </span>
                         </div>
                       </div>
@@ -685,7 +685,7 @@ export default function Payments() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <ShieldCheck size={14} style={{ color: '#F5B955' }} />
-                <span>Liquidación respaldada bajo contrato legal Diogo Haute Studio</span>
+                <span>Liquidação salvaguardada sob contrato legal Diogo Haute Studio</span>
               </div>
               <span>Página 1 de 1</span>
             </div>
@@ -710,14 +710,14 @@ export default function Payments() {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#C78D4D', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5B955', boxShadow: '0 0 6px #F5B955' }} />
-                    Detalle de Liquidación
+                    Detalhe de Liquidação
                   </span>
                   <span style={{
                     padding: '2px 8px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 600,
                     background: activeStatus === 'Completado' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 185, 85, 0.15)',
                     color: activeStatus === 'Completado' ? '#4ade80' : '#F5B955'
                   }}>
-                    {activeStatus}
+                    {activeStatus === 'Completado' ? 'Concluído' : activeStatus}
                   </span>
                 </div>
 
@@ -737,13 +737,13 @@ export default function Payments() {
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div style={{ padding: 12, borderRadius: 8, background: '#0c0e14', display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Total Presupuestado</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Total Orçamentado</span>
                     <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F8FAFC', marginTop: 2 }}>
                       {fmt(activeBruto)}
                     </span>
                   </div>
                   <div style={{ padding: 12, borderRadius: 8, background: '#0c0e14', display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Anticipo Recibido</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Sinal Recebido</span>
                     <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#ffcd99', marginTop: 2 }}>
                       {fmt(activeAnticipo)}
                     </span>
@@ -758,7 +758,7 @@ export default function Payments() {
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>
-                      Balance Exigible
+                      Saldo Exigível
                     </span>
                     <span style={{
                       fontSize: '1.45rem', fontWeight: 800,
@@ -780,7 +780,7 @@ export default function Payments() {
                 {/* Production Moodboard Preview */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>
-                    Hoja de Contacto & Moodboard
+                    Folha de Contactos & Moodboard
                   </span>
                   <div style={{
                     position: 'relative', width: '100%', height: 100, borderRadius: 8,
@@ -793,7 +793,7 @@ export default function Payments() {
                     }}>
                       <ImageIcon size={24} style={{ color: '#F5B955', opacity: 0.8 }} />
                       <span style={{ fontSize: '0.75rem', color: '#F8FAFC', fontWeight: 600 }}>
-                        {activeBooking.url_galeria ? 'Galería Entregada Disponible' : 'Galería en Producción Atelier'}
+                        {activeBooking.url_galeria ? 'Galeria Entregue Disponível' : 'Galeria em Produção Atelier'}
                       </span>
                     </div>
                   </div>
@@ -802,7 +802,7 @@ export default function Payments() {
                 {/* Accepted Payment Methods Badges */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>
-                    Canales de Pago Habilitados
+                    Canais de Pagamento Disponíveis
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -828,11 +828,11 @@ export default function Payments() {
                   <div style={{ background: '#0c0e14', padding: 12, borderRadius: 8, border: '1px solid #282f42', display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Último Método</span>
-                      <span style={{ fontSize: '0.78rem', color: '#F5B955', fontWeight: 600 }}>{activeBooking.metodo_pago || 'Transferencia Bancaria'}</span>
+                      <span style={{ fontSize: '0.78rem', color: '#F5B955', fontWeight: 600 }}>{activeBooking.metodo_pago || 'Transferência Bancária'}</span>
                     </div>
                     {activeBooking.notas_pago && (
                       <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: 2, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 4 }}>
-                        <span style={{ color: '#64748B' }}>Historial / Notas: </span>{activeBooking.notas_pago}
+                        <span style={{ color: '#64748B' }}>Histórico / Notas: </span>{activeBooking.notas_pago}
                       </div>
                     )}
                   </div>
@@ -852,7 +852,7 @@ export default function Payments() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                     }}
                   >
-                    <CreditCard size={16} /> Registrar Pago / Abono (€)
+                    <CreditCard size={16} /> Registar Pagamento / Sinal (€)
                   </button>
 
                   <button
@@ -867,7 +867,7 @@ export default function Payments() {
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    <Plus size={16} /> + Añadir Extra / Upsell (Fotos/Álbum)
+                    <Plus size={16} /> + Adicionar Extra / Upsell (Fotos/Álbum)
                   </button>
 
                   {getWhatsAppReminderUrl(activeBooking) && (
@@ -881,7 +881,7 @@ export default function Payments() {
                         textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                       }}
                     >
-                      <Send size={15} style={{ color: '#F5B955' }} /> Recordatorio WhatsApp
+                      <Send size={15} style={{ color: '#F5B955' }} /> Lembrete WhatsApp
                     </a>
                   )}
 
@@ -895,7 +895,7 @@ export default function Payments() {
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                     }}
                   >
-                    <FileText size={15} /> Descargar / Imprimir Recibo
+                    <FileText size={15} /> Descarregar / Imprimir Recibo
                   </button>
                 </div>
 
@@ -905,9 +905,9 @@ export default function Payments() {
           ) : (
             <div style={{ background: '#191b22', borderRadius: 14, padding: 40, textAlign: 'center', border: '1px solid #282f42' }}>
               <CreditCard size={32} className="text-muted" style={{ margin: '0 auto 10px auto', opacity: 0.5 }} />
-              <div style={{ color: '#F8FAFC', fontWeight: 600 }}>Selecciona una liquidación</div>
+              <div style={{ color: '#F8FAFC', fontWeight: 600 }}>Seleciona uma liquidação</div>
               <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 4 }}>
-                Haz clic en una sesión para inspeccionar sus pagos o abonar.
+                Clica numa sessão para inspecionar os pagamentos ou liquidar.
               </div>
             </div>
           )}
@@ -922,18 +922,18 @@ export default function Payments() {
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Wallet size={20} className="text-accent" />
-                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Abonar a Reserva</h3>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Liquidar / Registar Sinal</h3>
               </div>
               <button className="modal-close" onClick={() => setShowAbonoModal(false)}><XCircle size={20} /></button>
             </div>
             
             <div className="modal-body">
               <p style={{ margin: '0 0 12px 0', fontSize: '0.85rem', color: '#94A3B8' }}>
-                Registrar ingreso formal para <strong style={{ color: '#F8FAFC' }}>{activeBooking.nombre_cliente || activeBooking.cliente_nombre}</strong> ({activeBooking.nombre_servicio || activeBooking.servicio_nombre}).
+                Registar receita formal para <strong style={{ color: '#F8FAFC' }}>{activeBooking.nombre_cliente || activeBooking.cliente_nombre}</strong> ({activeBooking.nombre_servicio || activeBooking.servicio_nombre}).
               </p>
 
               <div className="form-group">
-                <label className="form-label">Monto Recibido (€) *</label>
+                <label className="form-label">Montante Recebido (€) *</label>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#F5B955', fontWeight: 700 }}>€</span>
                   <input
@@ -949,7 +949,7 @@ export default function Payments() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Método de Cobro (Portugal)</label>
+                <label className="form-label">Método de Pagamento (Portugal)</label>
                 <select
                   className="form-select"
                   value={abonoMethod}
@@ -959,19 +959,19 @@ export default function Payments() {
                   <option value="Transferencia Bancaria">Transferência Bancária (IBAN / SEPA)</option>
                   <option value="Multibanco">Referência Multibanco</option>
                   <option value="Tarjeta / TPV Estudio">Cartão / Terminal TPV no Estúdio</option>
-                  <option value="Efectivo en Estudio">Dinheiro / Efectivo no Estúdio</option>
+                  <option value="Efectivo en Estudio">Dinheiro no Estúdio</option>
                   <option value="Stripe Link / Online">Stripe Link / Pagamento Online</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Notas del Pago (Opcional)</label>
+                <label className="form-label">Notas do Pagamento (Opcional)</label>
                 <input
                   type="text"
                   className="form-input"
                   value={abonoNotes}
                   onChange={e => setAbonoNotes(e.target.value)}
-                  placeholder="Ej: Ref #98231 o abono inicial..."
+                  placeholder="Ex: Ref #98231 ou sinal inicial..."
                 />
               </div>
             </div>
@@ -984,7 +984,7 @@ export default function Payments() {
                 disabled={saving || !abonoAmount}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <CheckCircle size={16} /> {saving ? 'Guardando...' : 'Confirmar Abono'}
+                <CheckCircle size={16} /> {saving ? 'A guardar...' : 'Confirmar Pagamento'}
               </button>
             </div>
           </div>
@@ -998,50 +998,50 @@ export default function Payments() {
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={20} className="text-accent" />
-                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Añadir Extra / Upsell</h3>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Adicionar Extra / Upsell</h3>
               </div>
               <button className="modal-close" onClick={() => setShowExtraModal(false)}><XCircle size={20} /></button>
             </div>
             
             <div className="modal-body">
               <p style={{ margin: '0 0 14px 0', fontSize: '0.85rem', color: '#94A3B8' }}>
-                Incrementa el presupuesto de <strong style={{ color: '#F8FAFC' }}>{activeBooking.nombre_cliente || activeBooking.cliente_nombre}</strong> por conceptos adicionales (fotos extra, impresiones, álbumes).
+                Aumenta o orçamento de <strong style={{ color: '#F8FAFC' }}>{activeBooking.nombre_cliente || activeBooking.cliente_nombre}</strong> por conceitos adicionais (fotos extra, impressões, álbuns).
               </p>
 
               {/* Botones de selección rápida */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
                 <button
                   type="button"
-                  onClick={() => { setExtraAmount('50'); setExtraConcept('5 Fotos Retocadas Adicionales') }}
+                  onClick={() => { setExtraAmount('50'); setExtraConcept('5 Fotos Retocadas Adicionais') }}
                   style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
                 >
                   +5 Fotos (50 €)
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setExtraAmount('90'); setExtraConcept('10 Fotos Retocadas Adicionales') }}
+                  onClick={() => { setExtraAmount('90'); setExtraConcept('10 Fotos Retocadas Adicionais') }}
                   style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
                 >
                   +10 Fotos (90 €)
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setExtraAmount('150'); setExtraConcept('Álbum Impreso Fine Art 30x30') }}
+                  onClick={() => { setExtraAmount('150'); setExtraConcept('Álbum Impresso Fine Art 30x30') }}
                   style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
                 >
                   +Álbum Fine Art (150 €)
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setExtraAmount('80'); setExtraConcept('Servicio Maquillaje & Peluquería') }}
+                  onClick={() => { setExtraAmount('80'); setExtraConcept('Serviço de Maquilhagem & Cabelo') }}
                   style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
                 >
-                  +Maquillaje (80 €)
+                  +Maquilhagem (80 €)
                 </button>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Monto Adicional (€) *</label>
+                <label className="form-label">Montante Adicional (€) *</label>
                 <div style={{ position: 'relative' }}>
                   <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#F5B955', fontWeight: 700 }}>€</span>
                   <input
@@ -1057,18 +1057,18 @@ export default function Payments() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Concepto del Extra *</label>
+                <label className="form-label">Conceito do Extra *</label>
                 <input
                   type="text"
                   className="form-input"
                   value={extraConcept}
                   onChange={e => setExtraConcept(e.target.value)}
-                  placeholder="Ej: 5 Fotos Retocadas Adicionales..."
+                  placeholder="Ex: 5 Fotos Retocadas Adicionais..."
                 />
               </div>
 
               <div style={{ padding: 10, borderRadius: 8, background: '#0c0e14', border: '1px solid #282f42', fontSize: '0.8rem', color: '#94A3B8' }}>
-                Total actual: <strong style={{ color: '#F8FAFC' }}>{fmt(activeBruto)}</strong> → Nuevo total: <strong style={{ color: '#F5B955' }}>{fmt(activeBruto + (parseFloat(extraAmount) || 0))}</strong>
+                Total atual: <strong style={{ color: '#F8FAFC' }}>{fmt(activeBruto)}</strong> → Novo total: <strong style={{ color: '#F5B955' }}>{fmt(activeBruto + (parseFloat(extraAmount) || 0))}</strong>
               </div>
             </div>
 
@@ -1080,7 +1080,7 @@ export default function Payments() {
                 disabled={saving || !extraAmount}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <CheckCircle size={16} /> {saving ? 'Guardando...' : 'Añadir al Presupuesto'}
+                <CheckCircle size={16} /> {saving ? 'A guardar...' : 'Adicionar ao Orçamento'}
               </button>
             </div>
           </div>

@@ -1,11 +1,11 @@
 import { Trophy, Medal, Award } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
 function getLoyaltyBadge(pct) {
-  if (pct >= 20) return { icon: <Trophy size={14} />, label: 'Oro', cls: 'loyalty-oro' }
-  if (pct >= 15) return { icon: <Medal size={14} />, label: 'Plata', cls: 'loyalty-plata' }
-  return { icon: <Award size={14} />, label: 'Bronce', cls: 'loyalty-bronce' }
+  if (pct >= 20) return { icon: <Trophy size={14} />, label: 'Ouro', cls: 'loyalty-oro' }
+  if (pct >= 15) return { icon: <Medal size={14} />, label: 'Prata', cls: 'loyalty-plata' }
+  return { icon: <Award size={14} />, label: 'Bronze', cls: 'loyalty-bronce' }
 }
 
 function LoyaltyWidget({ data = [] }) {
@@ -13,9 +13,9 @@ function LoyaltyWidget({ data = [] }) {
     return (
       <div className="card">
         <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Trophy size={20} className="text-accent" /> Fidelidad
+          <Trophy size={20} className="text-accent" /> Fidelização
         </div>
-        <div className="widget-empty">Sin datos de fidelidad</div>
+        <div className="widget-empty">Sem dados de fidelização</div>
       </div>
     )
   }
@@ -23,7 +23,7 @@ function LoyaltyWidget({ data = [] }) {
   return (
     <div className="card">
       <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Trophy size={20} className="text-accent" /> Fidelidad de Clientes
+        <Trophy size={20} className="text-accent" /> Fidelização de Clientes
       </div>
       <div className="widget-list">
         {data.slice(0, 5).map((c, i) => { // Limitar a top 5
@@ -36,7 +36,7 @@ function LoyaltyWidget({ data = [] }) {
               </span>
               <div className="loyalty-item-stats">
                 <div style={{fontWeight:700, color:'var(--accent)'}}>{fmt(c.total_gastado)}</div>
-                <div style={{fontSize:'0.75rem', color:'var(--text-muted)'}}>{c.sesiones_completadas} sesion(es)</div>
+                <div style={{fontSize:'0.75rem', color:'var(--text-muted)'}}>{c.sesiones_completadas} sessão(ões)</div>
               </div>
             </div>
           )

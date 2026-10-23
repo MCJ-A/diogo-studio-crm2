@@ -1,4 +1,4 @@
-// Asistente de Voz Inteligente (TTS & Dictado por Voz STT) para Diogo Studio
+// Assistente de Voz Inteligente (TTS & Ditado por Voz STT) para Diogo Studio (Portugal)
 
 export function isTTSSupported() {
   return typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -12,21 +12,20 @@ export function stopSpeaking() {
 
 export function speakText(text, { onStart, onEnd, onError } = {}) {
   if (!isTTSSupported()) {
-    if (onError) onError('Tu navegador no soporta lectura por voz (TTS).')
+    if (onError) onError('O seu navegador não suporta leitura por voz (TTS).')
     return false
   }
 
   window.speechSynthesis.cancel()
 
   const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = 'es-ES'
+  utterance.lang = 'pt-PT'
   utterance.rate = 1.02
   utterance.pitch = 1.0
 
   const voices = window.speechSynthesis.getVoices()
   const preferredVoice =
-    voices.find(v => v.lang.startsWith('es') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Microsoft'))) ||
-    voices.find(v => v.lang.startsWith('es')) ||
+    voices.find(v => (v.lang === 'pt-PT' || v.lang.startsWith('pt')) && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Portugal') || v.name.includes('Microsoft'))) ||
     voices.find(v => v.lang.startsWith('pt'))
 
   if (preferredVoice) {
@@ -41,7 +40,7 @@ export function speakText(text, { onStart, onEnd, onError } = {}) {
   }
   utterance.onerror = (e) => {
     if (onEnd) onEnd()
-    if (onError && e.error !== 'canceled') onError('Error al reproducir voz')
+    if (onError && e.error !== 'canceled') onError('Erro ao reproduzir voz')
   }
 
   window.speechSynthesis.speak(utterance)
@@ -52,7 +51,7 @@ const fmtDateSpoken = (d) => {
   if (!d) return ''
   const dateObj = new Date(d.includes('T') ? d : d + 'T00:00:00')
   if (isNaN(dateObj.getTime())) return d
-  return dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  return dateObj.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
 export function buildDailyBriefingSpeech({ bookings = [], calendarNotes = [], alerts = [] }) {
@@ -61,80 +60,80 @@ export function buildDailyBriefingSpeech({ bookings = [], calendarNotes = [], al
   nextWeekDate.setDate(nextWeekDate.getDate() + 14)
   const nextWeekStr = nextWeekDate.toISOString().split('T')[0]
 
-  const parts = ['Hola Diogo. Aquí tienes el resumen operativo de tu estudio.']
+  const parts = ['Olá Diogo. Aqui tens o resumo operacional do teu atelier.']
 
-  // 1. Sesiones de hoy
+  // 1. Sessões de hoje
   const todayBookings = bookings.filter(b => b.fecha_sesion === todayStr && b.estado !== 'Cancelada')
   if (todayBookings.length > 0) {
-    parts.push(`Para hoy tienes ${todayBookings.length} ${todayBookings.length === 1 ? 'sesión programada' : 'sesiones programadas'}.`)
+    parts.push(`Para hoje tens ${todayBookings.length} ${todayBookings.length === 1 ? 'sessão agendada' : 'sessões agendadas'}.`)
     todayBookings.forEach(b => {
       const cname = b.nombre_cliente || b.cliente_nombre || 'Cliente'
-      const sname = b.nombre_servicio || b.servicio_nombre || 'sesión'
+      const sname = b.nombre_servicio || b.servicio_nombre || 'sessão'
       const hora = b.hora_sesion || '10:00'
-      parts.push(`A las ${hora}, ${sname} con ${cname} en ${b.ubicacion || 'el estudio central'}.`)
+      parts.push(`Às ${hora}, ${sname} com ${cname} em ${b.ubicacion || 'o estúdio central'}.`)
     })
   } else {
-    parts.push('Hoy no tienes sesiones de rodaje programadas.')
+    parts.push('Hoje não tens sessões de estúdio agendadas.')
   }
 
-  // 2. Días marcados / Recordatorios anti-olvido pendientes
+  // 2. Datas marcadas / Lembretes anti-esquecimento
   const pendingNotes = calendarNotes.filter(n => !n.completado)
   if (pendingNotes.length > 0) {
-    parts.push(`Atención a tus fechas marcadas y recordatorios para que no se te pase nada: tienes ${pendingNotes.length} ${pendingNotes.length === 1 ? 'fecha marcada pendiente' : 'fechas marcadas pendientes'}.`)
+    parts.push(`Atenção às tuas datas marcadas e lembretes para não esqueceres nada: tens ${pendingNotes.length} ${pendingNotes.length === 1 ? 'marcação pendente' : 'marcações pendentes'}.`)
     pendingNotes.slice(0, 4).forEach(n => {
-      const fText = n.fecha === todayStr ? 'para hoy' : `para el ${fmtDateSpoken(n.fecha)}`
-      const tipoLabel = n.tipo === 'bloqueo' ? 'Día bloqueado' : n.tipo === 'pre_reserva' ? 'Pre-reserva tentativa' : n.tipo === 'entrega' ? 'Entrega programada' : 'Recordatorio'
-      parts.push(`${tipoLabel} ${fText} a las ${n.hora || '09:00'}: ${n.titulo}. ${n.notas ? n.notas : ''}`)
+      const fText = n.fecha === todayStr ? 'para hoje' : `para ${fmtDateSpoken(n.fecha)}`
+      const tipoLabel = n.tipo === 'bloqueo' ? 'Dia bloqueado' : n.tipo === 'pre_reserva' ? 'Pré-reserva' : n.tipo === 'entrega' ? 'Entrega agendada' : 'Lembrete'
+      parts.push(`${tipoLabel} ${fText} às ${n.hora || '09:00'}: ${n.titulo}. ${n.notas ? n.notas : ''}`)
     })
   }
 
-  // 3. Próximas sesiones agendadas
+  // 3. Próximas sessões agendadas
   const upcomingBookings = bookings
     .filter(b => b.fecha_sesion > todayStr && b.fecha_sesion <= nextWeekStr && b.estado === 'Agendada')
     .sort((a, b) => (a.fecha_sesion || '').localeCompare(b.fecha_sesion || ''))
 
   if (upcomingBookings.length > 0) {
-    parts.push(`En los próximos días tienes ${upcomingBookings.length} ${upcomingBookings.length === 1 ? 'sesión agendada' : 'sesiones agendadas'}.`)
+    parts.push(`Nos próximos dias tens ${upcomingBookings.length} ${upcomingBookings.length === 1 ? 'sessão agendada' : 'sessões agendadas'}.`)
     upcomingBookings.slice(0, 3).forEach(b => {
       const cname = b.nombre_cliente || b.cliente_nombre || 'Cliente'
-      parts.push(`El ${fmtDateSpoken(b.fecha_sesion)} a las ${b.hora_sesion || '10:00'} con ${cname}.`)
+      parts.push(`A ${fmtDateSpoken(b.fecha_sesion)} às ${b.hora_sesion || '10:00'} com ${cname}.`)
     })
   }
 
-  // 4. Alertas operativas (contratos o cobros)
+  // 4. Alertas operacionais
   if (alerts && alerts.length > 0) {
-    parts.push(`Por último, recuerda revisar ${alerts.length} ${alerts.length === 1 ? 'alerta operativa pendiente' : 'alertas operativas pendientes'} de contrato o saldo por liquidar.`)
+    parts.push(`Por fim, revê ${alerts.length} ${alerts.length === 1 ? 'alerta operacional pendente' : 'alertas operacionais pendentes'} de contrato ou saldo por liquidar.`)
   }
 
-  parts.push('Que tengas una excelente jornada en el atelier.')
+  parts.push('Tem uma excelente jornada de trabalho no atelier.')
   return parts.join(' ')
 }
 
 export function buildSessionBriefingSpeech(booking, dayNotes = []) {
   if (!booking) return ''
   const cname = booking.nombre_cliente || booking.cliente_nombre || 'Cliente'
-  const sname = booking.nombre_servicio || booking.servicio_nombre || 'Sesión fotográfica'
+  const sname = booking.nombre_servicio || booking.servicio_nombre || 'Sessão fotográfica'
   const fText = fmtDateSpoken(booking.fecha_sesion)
   const hora = booking.hora_sesion || '10:00'
   const ubic = booking.ubicacion || 'Estúdio Central Diogo'
 
   const parts = [
-    `Ficha de rodaje para ${cname}.`,
-    `Servicio: ${sname}, programado el ${fText} a las ${hora} horas en ${ubic}.`,
-    booking.contrato_firmado ? 'El contrato legal ya está firmado.' : 'Atención: el contrato legal aún está pendiente de firma.',
-    booking.autoriza_redes_sociales ? 'El cliente autoriza publicar las fotografías en Instagram y portafolio.' : 'Atención confidencialidad: no publicar fotografías en redes sociales.'
+    `Ficha de sessão para ${cname}.`,
+    `Serviço: ${sname}, agendado para ${fText} às ${hora} horas em ${ubic}.`,
+    booking.contrato_firmado ? 'O contrato legal já se encontra assinado.' : 'Atenção: o contrato legal ainda está pendente de assinatura.',
+    booking.autoriza_redes_sociales ? 'O cliente autoriza a publicação de fotografias no Instagram e portfólio.' : 'Atenção confidencialidade: não publicar fotografias nas redes sociais.'
   ]
 
   if (booking.cliente_notas_estilo) {
-    parts.push(`Estilo y preferencias del cliente: ${booking.cliente_notas_estilo}.`)
+    parts.push(`Estilo e preferências do cliente: ${booking.cliente_notas_estilo}.`)
   }
   if (booking.notas_internas) {
-    parts.push(`Notas internas del rodaje: ${booking.notas_internas}.`)
+    parts.push(`Notas internas da produção: ${booking.notas_internas}.`)
   }
 
   const sameDayNotes = dayNotes.filter(n => n.fecha === booking.fecha_sesion && !n.completado)
   if (sameDayNotes.length > 0) {
-    parts.push(`Además, en esta misma fecha tienes marcado: ${sameDayNotes.map(n => n.titulo).join(', ')}.`)
+    parts.push(`Além disso, nesta mesma data tens marcado: ${sameDayNotes.map(n => n.titulo).join(', ')}.`)
   }
 
   return parts.join(' ')
@@ -146,12 +145,12 @@ export function isSTTSupported() {
 
 export function startVoiceDictation({ onResult, onError, onEnd } = {}) {
   if (!isSTTSupported()) {
-    if (onError) onError('Tu navegador no soporta dictado por voz. Usa Chrome, Edge o Safari.')
+    if (onError) onError('O seu navegador não suporta ditado por voz. Recomendamos Google Chrome, Safari ou Edge.')
     return null
   }
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
   const recognition = new SpeechRecognition()
-  recognition.lang = 'es-ES'
+  recognition.lang = 'pt-PT'
   recognition.interimResults = false
   recognition.maxAlternatives = 1
 
@@ -160,7 +159,7 @@ export function startVoiceDictation({ onResult, onError, onEnd } = {}) {
     if (transcript && onResult) onResult(transcript)
   }
   recognition.onerror = (event) => {
-    if (onError) onError(`Error de micrófono: ${event.error}`)
+    if (onError) onError(`Erro de microfone: ${event.error}`)
   }
   recognition.onend = () => {
     if (onEnd) onEnd()

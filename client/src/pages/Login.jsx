@@ -29,10 +29,10 @@ export default function Login({ onLogin }) {
         }
         onLogin(data.access_token);
       } else {
-        setError(data.error || 'Credenciales incorrectas');
+        setError(data.error || 'Credenciais incorretas');
       }
     } catch (err) {
-      setError('Error de conexión con el servidor');
+      setError('Erro de ligação ao servidor');
     }
     setLoading(false);
   };
@@ -68,7 +68,7 @@ export default function Login({ onLogin }) {
             </div>
 
             <h1 className="login-v2-title">Diogo Studio</h1>
-            <p className="login-v2-subtitle">Panel de Administración</p>
+            <p className="login-v2-subtitle">Painel de Administração</p>
           </div>
 
           {/* Alerta de Error */}
@@ -83,7 +83,7 @@ export default function Login({ onLogin }) {
             <div className="login-v2-field">
               <label htmlFor="login-username" className="login-v2-label">
                 <User size={15} className="login-v2-label-icon" />
-                <span>Usuario</span>
+                <span>Utilizador</span>
               </label>
               <div className="login-v2-input-wrapper">
                 <input
@@ -91,7 +91,7 @@ export default function Login({ onLogin }) {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Introduce tu usuario"
+                  placeholder="Insira o seu utilizador"
                   required
                   className="login-v2-input"
                 />
@@ -102,17 +102,17 @@ export default function Login({ onLogin }) {
               <div className="login-v2-label-row">
                 <label htmlFor="login-password" className="login-v2-label">
                   <Lock size={15} className="login-v2-label-icon" />
-                  <span>Contraseña</span>
+                  <span>Palavra-passe</span>
                 </label>
                 <a
                   href="#forgot"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert('Contacta al administrador del sistema para restablecer tu acceso.');
+                    alert('Contacte o administrador do sistema para redefinir o seu acesso.');
                   }}
                   className="login-v2-forgot"
                 >
-                  ¿Olvidaste tu contraseña?
+                  Esqueceu-se da palavra-passe?
                 </a>
               </div>
               <div className="login-v2-input-wrapper">
@@ -121,13 +121,13 @@ export default function Login({ onLogin }) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Introduce tu contraseña"
+                  placeholder="Insira a sua palavra-passe"
                   required
                   className="login-v2-input login-v2-input-password"
                 />
                 <button
                   type="button"
-                  aria-label="Alternar visibilidad de contraseña"
+                  aria-label="Alternar visibilidade da palavra-passe"
                   onClick={() => setShowPassword(!showPassword)}
                   className="login-v2-eye-btn"
                 >
@@ -145,7 +145,7 @@ export default function Login({ onLogin }) {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="login-v2-checkbox"
                 />
-                <span className="login-v2-checkbox-text">Recordar sesión</span>
+                <span className="login-v2-checkbox-text">Lembrar sessão</span>
               </label>
             </div>
 
@@ -158,11 +158,11 @@ export default function Login({ onLogin }) {
               {loading ? (
                 <div className="login-v2-btn-loading">
                   <span className="login-v2-spinner" />
-                  <span>Accediendo...</span>
+                  <span>A entrar...</span>
                 </div>
               ) : (
                 <div className="login-v2-btn-content">
-                  <span>Ingresar</span>
+                  <span>Entrar</span>
                   <ArrowRight size={18} />
                 </div>
               )}
@@ -172,7 +172,7 @@ export default function Login({ onLogin }) {
           {/* Footer de Seguridad */}
           <div className="login-v2-security-badge">
             <ShieldCheck size={14} className="login-v2-shield-icon" />
-            <span>Conexión cifrada de extremo a extremo</span>
+            <span>Ligação encriptada ponto a ponto</span>
           </div>
         </div>
 
@@ -180,7 +180,7 @@ export default function Login({ onLogin }) {
         <div className="login-v2-status-row">
           <span className="login-v2-status-pill">
             <span className="login-v2-status-dot" />
-            <span>Servidor Activo</span>
+            <span>Servidor Ativo</span>
           </span>
           <span className="login-v2-status-divider">•</span>
           <span className="login-v2-status-version">v2.4.0 Studio OS</span>

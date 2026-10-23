@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, AlertTriangle, BellRing } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v)
 
 function AlertsWidget({ alerts = [] }) {
   const navigate = useNavigate()
@@ -12,7 +12,7 @@ function AlertsWidget({ alerts = [] }) {
         <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <BellRing size={20} className="text-warning" /> Alertas
         </div>
-        <div className="widget-empty">Sin alertas pendientes</div>
+        <div className="widget-empty">Sem alertas pendentes</div>
       </div>
     )
   }
@@ -35,7 +35,7 @@ function AlertsWidget({ alerts = [] }) {
                 <div className="alert-name">{a.cliente || a.nombre_cliente} — {a.servicio || a.nombre_servicio}</div>
                 <div className="alert-msg">{a.alerta || a.mensaje_alerta}</div>
                 {hasPending && (
-                  <div className="alert-amount text-danger">{fmt(a.saldo_pendiente)} pendiente</div>
+                  <div className="alert-amount text-danger">{fmt(a.saldo_pendiente)} pendente</div>
                 )}
               </div>
               <button

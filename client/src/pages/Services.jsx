@@ -5,7 +5,7 @@ import {
   BookOpen, Star, MoreVertical, Sliders, Check, Eye, PackagePlus
 } from 'lucide-react'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
 const EMPTY_SERVICE = { 
   nombre: '', 
@@ -17,31 +17,31 @@ const EMPTY_SERVICE = {
 }
 
 const CATEGORIES = [
-  { id: 'all', label: 'Todos los servicios' },
-  { id: 'bodas', label: 'Bodas & Parejas' },
+  { id: 'all', label: 'Todos os serviços' },
+  { id: 'bodas', label: 'Casamentos & Noivos' },
   { id: 'corporativo', label: 'Corporativo' },
-  { id: 'retrato', label: 'Retrato & Familia' }
+  { id: 'retrato', label: 'Retrato & Família' }
 ]
 
 function getCategoryFromService(s) {
   const name = (s.nombre || '').toLowerCase()
-  if (name.includes('matrimoni') || name.includes('boda') || name.includes('pareja') || name.includes('novios')) return 'bodas'
+  if (name.includes('matrimoni') || name.includes('boda') || name.includes('casamento') || name.includes('noivos') || name.includes('pareja')) return 'bodas'
   if (name.includes('corporativ') || name.includes('b2b') || name.includes('comercial') || name.includes('empresa')) return 'corporativo'
   return 'retrato'
 }
 
 function getCategoryLabel(cat) {
-  if (cat === 'bodas') return 'Bodas de Alta Gama'
+  if (cat === 'bodas') return 'Casamentos de Alta Gama'
   if (cat === 'corporativo') return 'Comercial / B2B'
   return 'Retrato Intimista'
 }
 
 function getServiceVisualMeta(s) {
   const name = (s.nombre || '').toLowerCase()
-  if (name.includes('matrimoni') || name.includes('boda')) {
+  if (name.includes('matrimoni') || name.includes('boda') || name.includes('casamento')) {
     return {
-      tag: 'Álbum Encuadernado Incluido',
-      duration: 'Jornada Completa',
+      tag: 'Álbum Encadernado Incluído',
+      duration: 'Dia Completo',
       isPopular: true,
       overline: 'Signature Atelier',
       gradient: 'linear-gradient(135deg, rgba(232, 176, 114, 0.2) 0%, rgba(19, 27, 42, 0.9) 100%)'
@@ -49,7 +49,7 @@ function getServiceVisualMeta(s) {
   }
   if (name.includes('corporativ') || name.includes('b2b')) {
     return {
-      tag: '2.5 Horas de toma',
+      tag: '2.5 Horas de sessão',
       duration: 'Uso Comercial',
       isPopular: false,
       overline: 'Comercial / B2B',
@@ -58,7 +58,7 @@ function getServiceVisualMeta(s) {
   }
   if (name.includes('familiar') || name.includes('familia')) {
     return {
-      tag: 'Hasta 5 integrantes',
+      tag: 'Até 5 pessoas',
       duration: '90 minutos',
       isPopular: false,
       overline: 'Retrato Intimista',
@@ -66,10 +66,10 @@ function getServiceVisualMeta(s) {
     }
   }
   return {
-    tag: '1 Locación exclusiva',
+    tag: '1 Localização exclusiva',
     duration: '60 minutos',
     isPopular: false,
-    overline: 'Editorial & Personal',
+    overline: 'Editorial & Pessoal',
     gradient: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(19, 27, 42, 0.9) 100%)'
   }
 }
@@ -99,7 +99,7 @@ export default function Services() {
   const fetchServices = async () => {
     try {
       const res = await fetch('/api/services')
-      if (!res.ok) throw new Error('Error al cargar servicios')
+      if (!res.ok) throw new Error('Erro ao carregar serviços')
       const data = await res.json()
       setServices(Array.isArray(data) ? data : data.services || [])
     } catch (err) {
@@ -149,11 +149,11 @@ export default function Services() {
           }),
         })
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Error al crear servicio')
+        if (!res.ok) throw new Error(data.error || 'Erro ao criar serviço')
         
         const created = data.service || data
         setServices(prev => [...prev, created])
-        setSuccessMsg(`Servicio "${created.nombre}" creado exitosamente`)
+        setSuccessMsg(`Serviço "${created.nombre}" criado com sucesso`)
       } else {
         const res = await fetch(`/api/services/${editingId}`, {
           method: 'PUT',
@@ -166,10 +166,10 @@ export default function Services() {
           }),
         })
         const updated = await res.json()
-        if (!res.ok) throw new Error(updated.error || 'Error al guardar cambios')
+        if (!res.ok) throw new Error(updated.error || 'Erro ao guardar alterações')
 
         setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === editingId ? updated : sv))
-        setSuccessMsg(`Servicio "${updated.nombre}" actualizado correctamente`)
+        setSuccessMsg(`Serviço "${updated.nombre}" atualizado com sucesso`)
       }
 
       setShowModal(false)
@@ -191,10 +191,10 @@ export default function Services() {
         headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Error al actualizar estado')
+      if (!res.ok) throw new Error(data.error || 'Erro ao atualizar estado')
       
       setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === svcId ? { ...sv, activo: data.activo } : sv))
-      setSuccessMsg(`Servicio "${s.nombre}" ${data.activo ? 'activado' : 'pausado'}`)
+      setSuccessMsg(`Serviço "${s.nombre}" ${data.activo ? 'ativado' : 'em pausa'}`)
       setTimeout(() => setSuccessMsg(null), 2500)
     } catch (err) {
       setError(err.message)
@@ -226,7 +226,7 @@ export default function Services() {
         return
       }
 
-      if (!res.ok) throw new Error(data.error || 'Error al procesar la eliminación')
+      if (!res.ok) throw new Error(data.error || 'Erro ao processar a eliminação')
 
       if (data.deactivated) {
         setServices(prev => prev.map(sv => (sv.id || sv.id_servicio) === svcId ? { ...sv, activo: 0 } : sv))
@@ -277,11 +277,11 @@ export default function Services() {
               <Camera size={20} />
             </div>
             <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-              Servicios
+              Serviços
             </h1>
           </div>
           <p style={{ margin: 0, color: '#94A3B8', fontSize: '0.88rem' }}>
-            Catálogo exclusivo de paquetes fotográficos, coberturas y entregables de alta gama
+            Catálogo exclusivo de pacotes fotográficos, coberturas e entregáveis de alta gama
           </p>
         </div>
 
@@ -296,7 +296,7 @@ export default function Services() {
             transition: 'all 0.15s ease'
           }}
         >
-          <Plus size={18} /> Nuevo Servicio
+          <Plus size={18} /> Novo Serviço
         </button>
       </div>
 
@@ -319,10 +319,10 @@ export default function Services() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Servicios Activos</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Serviços Ativos</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 4 }}>
               <span style={{ fontSize: '1.4rem', fontWeight: 700, color: '#F8FAFC' }}>{activosCount}</span>
-              <span style={{ fontSize: '0.8rem', color: '#64748B' }}>/ {totalRegistrados} registrados</span>
+              <span style={{ fontSize: '0.8rem', color: '#64748B' }}>/ {totalRegistrados} registados</span>
             </div>
           </div>
           <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffcd99' }}>
@@ -336,7 +336,7 @@ export default function Services() {
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Top Atelier</span>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F5B955', marginTop: 4 }}>Matrimonial</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#F5B955', marginTop: 4 }}>Casamentos</span>
           </div>
           <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F5B955' }}>
             <Award size={20} />
@@ -348,7 +348,7 @@ export default function Services() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Ticket Promedio</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Valor Médio por Sessão</span>
             <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC', marginTop: 4 }}>{fmt(ticketPromedio)}</span>
           </div>
           <div style={{ width: 38, height: 38, borderRadius: 8, background: '#282a30', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bcc7de' }}>
@@ -361,10 +361,10 @@ export default function Services() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1, paddingRight: 8 }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Tasa de Conversión</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Taxa de Conversão</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
               <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#F8FAFC' }}>68.4%</span>
-              <span style={{ fontSize: '0.75rem', color: '#e8b072', fontWeight: 600 }}>óptima</span>
+              <span style={{ fontSize: '0.75rem', color: '#e8b072', fontWeight: 600 }}>ótima</span>
             </div>
             <div style={{ width: '100%', height: 4, background: '#282a30', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
               <div style={{ width: '68.4%', height: '100%', background: '#e8b072', borderRadius: 2 }} />
@@ -412,7 +412,7 @@ export default function Services() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
         {filteredServices.length === 0 ? (
           <div className="no-data" style={{ gridColumn: '1/-1', padding: 40, textAlign: 'center' }}>
-            No se encontraron paquetes en esta categoría.
+            Não foram encontrados pacotes nesta categoria.
           </div>
         ) : (
           filteredServices.map(s => {
@@ -463,7 +463,7 @@ export default function Services() {
                     </div>
 
                     {/* Interactive Toggle Switch */}
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }} title={s.activo ? 'Desactivar paquete' : 'Activar paquete'}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }} title={s.activo ? 'Desativar pacote' : 'Ativar pacote'}>
                       <input
                         type="checkbox"
                         checked={!!s.activo}
@@ -471,7 +471,7 @@ export default function Services() {
                         style={{ width: 16, height: 16, accentColor: '#e8b072', cursor: 'pointer' }}
                       />
                       <span style={{ fontSize: '0.75rem', color: s.activo ? '#4ade80' : '#64748B', fontWeight: 600 }}>
-                        {s.activo ? 'Activo' : 'Pausado'}
+                        {s.activo ? 'Ativo' : 'Em pausa'}
                       </span>
                     </label>
                   </div>
@@ -515,7 +515,7 @@ export default function Services() {
                       ))
                     ) : (
                       <div style={{ fontSize: '0.82rem', color: '#94A3B8' }}>
-                        Cobertura fotográfica profesional de estudio y galería digital de entrega.
+                        Cobertura fotográfica profissional de estúdio e galeria digital de entrega.
                       </div>
                     )}
                   </div>
@@ -530,7 +530,7 @@ export default function Services() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.activo ? '#4ade80' : '#64748B' }} />
                     <span style={{ fontSize: '0.75rem', fontWeight: 600, color: s.activo ? '#4ade80' : '#64748B' }}>
-                      {s.activo ? 'En Catálogo' : 'Pausado'}
+                      {s.activo ? 'No Catálogo' : 'Em pausa'}
                     </span>
                   </div>
 
@@ -552,7 +552,7 @@ export default function Services() {
                         border: 'none', color: '#ffb4ab', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                       }}
-                      title="Eliminar o pausar servicio"
+                      title="Eliminar ou pausar serviço"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -580,10 +580,10 @@ export default function Services() {
           </div>
           <div>
             <span style={{ fontWeight: 700, fontSize: '1.05rem', color: '#F8FAFC', display: 'block' }}>
-              ¿Deseas ofrecer servicios adicionales?
+              Queres oferecer serviços adicionais?
             </span>
             <span style={{ color: '#94A3B8', fontSize: '0.85rem' }}>
-              Configura complementos como horas extra de cobertura, retocado express en 24h, o impresiones en papel Fine Art de algodón.
+              Configura complementos como horas extra de cobertura, retoque expresso em 24h, ou impressões em papel Fine Art de algodão.
             </span>
           </div>
         </div>
@@ -596,7 +596,7 @@ export default function Services() {
             cursor: 'pointer'
           }}
         >
-          + Crear Complemento
+          + Criar Complemento
         </button>
       </div>
 
@@ -608,7 +608,7 @@ export default function Services() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Camera size={20} className="text-accent" />
                 <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#F8FAFC' }}>
-                  {modalMode === 'create' ? 'Configurar Nuevo Paquete' : `Editar: ${serviceForm.nombre}`}
+                  {modalMode === 'create' ? 'Configurar Novo Pacote' : `Editar: ${serviceForm.nombre}`}
                 </h3>
               </div>
               <button className="modal-close" onClick={() => setShowModal(false)}><XCircle size={20} /></button>
@@ -617,19 +617,19 @@ export default function Services() {
             <form onSubmit={handleFormSubmit}>
               <div className="modal-body">
                 <div className="form-group">
-                  <label className="form-label">Nombre del Paquete / Servicio *</label>
+                  <label className="form-label">Nome do Pacote / Serviço *</label>
                   <input
                     className="form-input"
                     value={serviceForm.nombre}
                     onChange={e => setServiceForm({ ...serviceForm, nombre: e.target.value })}
-                    placeholder="Ej. Sesión Editorial de Moda"
+                    placeholder="Ex: Sessão Editorial de Moda"
                     required
                   />
                 </div>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Precio (€) *</label>
+                    <label className="form-label">Preço (€) *</label>
                     <input
                       type="number"
                       step="any"
@@ -641,27 +641,27 @@ export default function Services() {
                     />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Categoría</label>
+                    <label className="form-label">Categoria</label>
                     <select
                       className="form-select"
                       value={serviceForm.categoria}
                       onChange={e => setServiceForm({ ...serviceForm, categoria: e.target.value })}
                     >
-                      <option value="bodas">Bodas & Parejas</option>
+                      <option value="bodas">Casamentos & Noivos</option>
                       <option value="corporativo">Corporativo / B2B</option>
-                      <option value="retrato">Retrato & Familia</option>
+                      <option value="retrato">Retrato & Família</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Entregables y Cobertura (1 por línea)</label>
+                  <label className="form-label">Entregáveis e Cobertura (1 por linha)</label>
                   <textarea
                     className="form-textarea"
                     rows={4}
                     value={serviceForm.entregables}
                     onChange={e => setServiceForm({ ...serviceForm, entregables: e.target.value })}
-                    placeholder="30 fotos editadas en alta resolución&#10;Álbum artesanal encuadernado&#10;2 fotógrafos simultáneos"
+                    placeholder="30 fotos editadas em alta resolução&#10;Álbum artesanal encadernado&#10;2 fotógrafos em simultâneo"
                   />
                 </div>
 
@@ -673,7 +673,7 @@ export default function Services() {
                       onChange={e => setServiceForm({ ...serviceForm, activo: e.target.checked })}
                       style={{ width: 16, height: 16, accentColor: '#e8b072' }}
                     />
-                    <span style={{ fontSize: '0.85rem', color: '#F8FAFC' }}>Disponible en catálogo público</span>
+                    <span style={{ fontSize: '0.85rem', color: '#F8FAFC' }}>Disponível no catálogo público</span>
                   </label>
                 </div>
               </div>
@@ -686,7 +686,7 @@ export default function Services() {
                   disabled={creating || !serviceForm.nombre.trim() || !serviceForm.precio_base}
                   style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <CheckCircle size={16} /> {creating ? 'Guardando...' : 'Guardar Cambios'}
+                  <CheckCircle size={16} /> {creating ? 'A guardar...' : 'Guardar Alterações'}
                 </button>
               </div>
             </form>
@@ -700,16 +700,16 @@ export default function Services() {
           <div className="modal-content" style={{ maxWidth: 440 }}>
             <div className="modal-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, color: 'var(--danger)' }}>
-                <Trash2 size={20} /> Eliminar Paquete
+                <Trash2 size={20} /> Eliminar Pacote
               </h3>
               <button className="modal-close" onClick={() => setServiceToDelete(null)}><XCircle size={20} /></button>
             </div>
             <div className="modal-body">
               <p style={{ margin: '0 0 12px 0' }}>
-                ¿Estás seguro de que deseas eliminar el paquete <strong>"{serviceToDelete.nombre}"</strong>?
+                Tens a certeza de que desejas eliminar o pacote <strong>"{serviceToDelete.nombre}"</strong>?
               </p>
               <p className="text-muted" style={{ fontSize: '0.85rem' }}>
-                Si el servicio cuenta con reservas previas, podrás desactivarlo de inmediato para conservar tu historial contable.
+                Se o serviço tiver marcações anteriores, podes desativá-lo para manter o teu histórico contabilístico.
               </p>
             </div>
             <div className="modal-footer">
@@ -719,7 +719,7 @@ export default function Services() {
                 onClick={() => confirmDelete(false)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <Trash2 size={16} /> Confirmar Eliminación
+                <Trash2 size={16} /> Confirmar Eliminação
               </button>
             </div>
           </div>
@@ -732,7 +732,7 @@ export default function Services() {
           <div className="modal-content" style={{ maxWidth: 480 }}>
             <div className="modal-header">
               <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, color: '#f59e0b' }}>
-                <AlertTriangle size={20} /> Reservas Asociadas Detectadas
+                <AlertTriangle size={20} /> Marcações Associadas Detetadas
               </h3>
               <button className="modal-close" onClick={() => setConflictModal(null)}><XCircle size={20} /></button>
             </div>
@@ -746,20 +746,20 @@ export default function Services() {
                 fontSize: '0.9rem',
                 color: '#fbbf24'
               }}>
-                El paquete <strong>"{conflictModal.service.nombre}"</strong> tiene <strong>{conflictModal.count} reserva(s)</strong> asociadas en el historial.
+                O pacote <strong>"{conflictModal.service.nombre}"</strong> tem <strong>{conflictModal.count} marcação(ões)</strong> associadas no histórico.
               </div>
               <p style={{ fontSize: '0.88rem', lineHeight: '1.5', margin: 0, color: '#cbd5e1' }}>
-                Para evitar inconsistencias en facturación y entregables, se recomienda desactivar el servicio en vez de eliminarlo.
+                Para evitar inconsistências na faturação e entregáveis, recomenda-se desativar o serviço em vez de o eliminar.
               </p>
             </div>
             <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setConflictModal(null)}>Cerrar</button>
+              <button className="btn-secondary" onClick={() => setConflictModal(null)}>Fechar</button>
               <button
                 className="btn-primary"
                 onClick={() => confirmDelete(true)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8 }}
               >
-                <Power size={16} /> Pausar Servicio
+                <Power size={16} /> Pausar Serviço
               </button>
             </div>
           </div>

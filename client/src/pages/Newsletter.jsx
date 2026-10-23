@@ -7,39 +7,39 @@ import {
 const PRESETS = [
   {
     id: 'temporada',
-    name: 'Promoción de Temporada',
-    asunto: 'Nueva temporada en Diogo Studio: Cupos limitados para sesiones especiales',
-    titulo: 'Sesiones Exclusivas de Temporada',
-    contenido: `Queremos invitarte a capturar recuerdos únicos en nuestras locaciones especiales de esta temporada.\n\nHemos preparado escenarios y dinámicas pensadas para familias, parejas y retratos personales que buscan una estética cálida y atemporal.\n\nLos cupos son limitados por semana para garantizar una experiencia personalizada de alta calidad. ¡Reserva con anticipación y asegura tu fecha favorita!`,
-    boton_texto: 'Reservar Fecha por WhatsApp',
-    boton_url: 'https://wa.me/?text=Hola%20Diogo%20Studio,%20quiero%20informacion%20de%20la%20sesion%20de%20temporada'
+    name: 'Promoção de Época',
+    asunto: 'Nova época no Diogo Studio: Vagas limitadas para sessões especiais',
+    titulo: 'Sessões Exclusivas de Época',
+    contenido: `Gostaríamos de te convidar a eternizar memórias únicas nas nossas localizações especiais desta época.\n\nPreparámos cenários e dinâmicas pensadas ao pormenor para famílias, casais e retratos pessoais que procuram uma estética calorosa e intemporal.\n\nAs vagas são limitadas por semana para garantir uma experiência personalizada de excelência. Faz a tua marcação com antecedência e assegura a tua data favorita!`,
+    boton_texto: 'Reservar Data por WhatsApp',
+    boton_url: 'https://wa.me/?text=Ola%20Diogo%20Studio,%20gostaria%20de%20informacoes%20sobre%20a%20sessao%20especial'
   },
   {
     id: 'vip',
-    name: 'Beneficio Exclusivo VIP',
-    asunto: 'Regalo exclusivo para ti: Descuento especial de lealtad en Diogo Studio',
-    titulo: 'Gracias por ser parte de nuestra comunidad VIP',
-    contenido: `Porque valoramos profundamente la confianza que has depositado en nuestro lente, queremos ofrecerte un beneficio exclusivo para tu próxima sesión fotográfica.\n\nDisfruta de tu descuento de lealtad preferencial aplicable a cualquiera de nuestros paquetes (Bodas, Maternidad, Recuerdos Familiares o Retrato Profesional).\n\nEste beneficio es transferible a un familiar directo si deseas hacer un regalo inolvidable.`,
-    boton_texto: 'Hacer Válido Mi Descuento',
-    boton_url: 'https://wa.me/?text=Hola%20Diogo%20Studio,%20quiero%20hacer%20valido%20mi%20descuento%20VIP'
+    name: 'Benefício Exclusivo VIP',
+    asunto: 'Oferta exclusiva para ti: Desconto especial de fidelização no Diogo Studio',
+    titulo: 'Obrigado por fazeres parte da nossa comunidade VIP',
+    contenido: `Porque valoramos profundamente a confiança que depositaste no nosso olhar, queremos oferecer-te um benefício exclusivo para a tua próxima sessão fotográfica.\n\nDesfruta do teu desconto de fidelização preferencial aplicável a qualquer um dos nossos pacotes (Casamentos, Maternidade, Memórias de Família ou Retrato Profissional).\n\nEste benefício é transferível para um familiar direto se desejares oferecer um presente inesquecível.`,
+    boton_texto: 'Validar o Meu Desconto',
+    boton_url: 'https://wa.me/?text=Ola%20Diogo%20Studio,%20quero%20utilizar%20o%20meu%20desconto%20VIP'
   },
   {
     id: 'especial',
-    name: 'Celebración & Fechas Especiales',
-    asunto: 'Se acerca una fecha muy especial: Conmemórala con Diogo Studio',
-    titulo: 'Momentos que merecen ser recordados para siempre',
-    contenido: `Sabemos que se aproxima una fecha muy significativa en tu calendario: un aniversario, un cumpleaños o un hito familiar que merece quedar guardado en imágenes.\n\nEn Diogo Studio nos encargamos de que disfrutes la experiencia al máximo, con entrega de galería digital en alta resolución y opciones de impresión fina.\n\nCuéntanos tu idea y crearemos una sesión a la medida de tu celebración.`,
-    boton_texto: 'Cotizar Sesión Especial',
-    boton_url: 'https://wa.me/?text=Hola%20Diogo%20Studio,%20quisiera%20cotizar%20una%20sesion%20para%20nuestra%20fecha%20especial'
+    name: 'Celebração & Datas Especiais',
+    asunto: 'Aproxima-se uma data muito especial: Comemora-a com o Diogo Studio',
+    titulo: 'Momentos que merecem ser recordados para sempre',
+    contenido: `Sabemos que se aproxima uma data muito significativa no teu calendário: um aniversário, bodas ou um marco familiar que merece ficar guardado em imagens.\n\nNo Diogo Studio asseguramos que desfrutas ao máximo da experiência, com entrega de galeria digital em alta resolução e opções de impressão fine art.\n\nPartilha connosco a tua ideia e desenharemos uma sessão à medida da tua celebração.`,
+    boton_texto: 'Pedir Orçamento Especial',
+    boton_url: 'https://wa.me/?text=Ola%20Diogo%20Studio,%20gostaria%20de%20um%20orcamento%20para%20uma%20data%20especial'
   },
   {
     id: 'reactivacion',
-    name: 'Reactivación de Clientes',
-    asunto: 'Cuánto tiempo hace que no renuevas tus fotos familiares',
-    titulo: 'El tiempo vuela, pero los recuerdos se quedan',
-    contenido: `Ha pasado algún tiempo desde que nos vimos en el estudio y sabemos lo rápido que cambian las etapas de la vida.\n\nNos encantaría volver a encontrarnos para actualizar tus retratos y crear nuevas memorias juntos. Tenemos paquetes renovados y nuevas opciones de entregables.\n\nPor reencontrarnos, te obsequiamos 5 fotografías adicionales editadas en tu próxima sesión.`,
-    boton_texto: 'Ver Nuevos Paquetes',
-    boton_url: 'https://wa.me/?text=Hola%20Diogo%20Studio,%20quiero%20aprovechar%20la%20promocion%20de%20fotos%20adicionales'
+    name: 'Reativação de Clientes',
+    asunto: 'Há quanto tempo não renovas os teus retratos de família',
+    titulo: 'O tempo voa, mas as memórias permanecem',
+    contenido: `Já passou algum tempo desde que estivemos juntos no estúdio e sabemos a rapidez com que as fases da vida passam.\n\nAdoraríamos voltar a encontrar-te para atualizar os teus retratos e criar novas memórias juntos. Temos pacotes renovados e novos suportes e álbuns.\n\nPara celebrar o nosso reencontro, oferecemos-te 5 fotografias adicionais editadas na tua próxima sessão.`,
+    boton_texto: 'Ver Novos Pacotes',
+    boton_url: 'https://wa.me/?text=Ola%20Diogo%20Studio,%20quero%20aproveitar%20a%20promocao%20de%20fotos%20adicionais'
   }
 ]
 
@@ -120,13 +120,13 @@ export default function Newsletter() {
     setContenido(preset.contenido)
     setBotonTexto(preset.boton_texto)
     setBotonUrl(preset.boton_url)
-    setFeedback({ type: 'success', text: `Plantilla "${preset.name}" cargada` })
+    setFeedback({ type: 'success', text: `Modelo "${preset.name}" carregado` })
     setTimeout(() => setFeedback(null), 2500)
   }
 
   const handleSendTest = async () => {
     if (!testEmail || !testEmail.includes('@')) {
-      setFeedback({ type: 'error', text: 'Por favor ingresa un correo electrónico válido para la prueba' })
+      setFeedback({ type: 'error', text: 'Por favor insere um email válido para o teste' })
       return
     }
     setSendingTest(true)
@@ -145,8 +145,8 @@ export default function Newsletter() {
         })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Error al enviar prueba')
-      setFeedback({ type: 'success', text: data.message || `Prueba enviada a ${testEmail}` })
+      if (!res.ok) throw new Error(data.error || 'Erro ao enviar teste')
+      setFeedback({ type: 'success', text: data.message || `Teste enviado para ${testEmail}` })
     } catch (e) {
       setFeedback({ type: 'error', text: e.message })
     } finally {
@@ -158,11 +158,11 @@ export default function Newsletter() {
     const audInfo = audiences ? audiences[selectedAudience] : null
     const count = audInfo?.count || 0
     if (count === 0) {
-      setFeedback({ type: 'error', text: 'No hay destinatarios en la audiencia seleccionada' })
+      setFeedback({ type: 'error', text: 'Não existem destinatários na audiência selecionada' })
       return
     }
 
-    const confirmed = window.confirm(`¿Estás seguro de enviar esta campaña a ${count} cliente(s)?`)
+    const confirmed = window.confirm(`Tens a certeza de que desejas enviar esta campanha para ${count} cliente(s)?`)
     if (!confirmed) return
 
     setSendingCampaign(true)
@@ -181,11 +181,11 @@ export default function Newsletter() {
         })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Error al enviar campaña')
+      if (!res.ok) throw new Error(data.error || 'Erro ao enviar campanha')
 
       setFeedback({ 
         type: 'success', 
-        text: `¡Campaña enviada con éxito! ${data.enviados} mensajes procesados (${data.simulated ? 'Modo Simulado Sandbox' : data.provider})` 
+        text: `Campanha enviada com sucesso! ${data.enviados} mensagens processadas (${data.simulated ? 'Modo Simulado Sandbox' : data.provider})` 
       })
 
       // Refrescar historial
@@ -214,7 +214,7 @@ export default function Newsletter() {
             <span>Campañas & Newsletter</span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Envío de promociones y boletines de alta fidelidad con diseño editorial
+            Envio de promoções e comunicados de alta fidelidade com design editorial
           </p>
         </div>
 
@@ -252,7 +252,7 @@ export default function Newsletter() {
           }`}
           onClick={() => setActiveTab('compose')}
         >
-          <Send className="w-4 h-4" /> Redactar Campaña
+          <Send className="w-4 h-4" /> Redigir Campaña
         </button>
         <button
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -262,7 +262,7 @@ export default function Newsletter() {
           }`}
           onClick={() => setActiveTab('history')}
         >
-          <History className="w-4 h-4" /> Historial de Envíos ({campaigns.length})
+          <History className="w-4 h-4" /> Histórico de Envios ({campaigns.length})
         </button>
       </div>
 
@@ -275,15 +275,15 @@ export default function Newsletter() {
             <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
               <div className="flex items-center gap-2 text-sm font-semibold text-white mb-4">
                 <Users className="w-4 h-4 text-amber-500" />
-                <span>1. Selecciona la Audiencia Objetivo</span>
+                <span>1. Seleciona a Audiência Alvo</span>
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {audiences && [
                   { key: 'all', icon: <Users className="w-4 h-4" />, label: 'Todos', count: audiences.all?.count || 0 },
                   { key: 'vip', icon: <Award className="w-4 h-4" />, label: 'VIPs', count: audiences.vip?.count || 0 },
-                  { key: 'special_dates', icon: <Heart className="w-4 h-4" />, label: 'Fechas Esp.', count: audiences.special_dates?.count || 0 },
-                  { key: 'inactive', icon: <Clock className="w-4 h-4" />, label: 'Inactivos', count: audiences.inactive?.count || 0 }
+                  { key: 'special_dates', icon: <Heart className="w-4 h-4" />, label: 'Datas Esp.', count: audiences.special_dates?.count || 0 },
+                  { key: 'inactive', icon: <Clock className="w-4 h-4" />, label: 'Inativos', count: audiences.inactive?.count || 0 }
                 ].map(aud => {
                   const isSel = selectedAudience === aud.key
                   return (
@@ -313,7 +313,7 @@ export default function Newsletter() {
             <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
               <div className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
                 <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>2. Cargar Plantilla Editorial</span>
+                <span>2. Carregar Modelo Editorial</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {PRESETS.map(p => (
@@ -329,7 +329,7 @@ export default function Newsletter() {
               </div>
             </div>
 
-            {/* 3. Redacción del Mensaje */}
+            {/* 3. Redação da Mensagem */}
             <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Edit className="w-4 h-4 text-amber-500" />
@@ -338,56 +338,56 @@ export default function Newsletter() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Asunto del Correo (Subject)
+                  Assunto do Email (Subject)
                 </label>
                 <input
                   className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                   value={asunto}
                   onChange={e => setAsunto(e.target.value)}
-                  placeholder="Ej: ✨ Promoción Exclusiva en Diogo Studio..."
+                  placeholder="Ex: ✨ Promoção Exclusiva no Diogo Studio..."
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Título Principal del Correo
+                  Título Principal do Email
                 </label>
                 <input
                   className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                   value={titulo}
                   onChange={e => setTitulo(e.target.value)}
-                  placeholder="Ej: Sesiones Especiales de Temporada"
+                  placeholder="Ex: Sessões Especiais de Época"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Cuerpo del Mensaje
+                  Corpo da Mensagem
                 </label>
                 <textarea
                   className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors leading-relaxed"
                   rows={6}
                   value={contenido}
                   onChange={e => setContenido(e.target.value)}
-                  placeholder="Escribe el contenido de tu boletín aquí..."
+                  placeholder="Escreve aqui o conteúdo da tua mensagem..."
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Texto del Botón (CTA)
+                    Texto do Botão (CTA)
                   </label>
                   <input
                     className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
                     value={botonTexto}
                     onChange={e => setBotonTexto(e.target.value)}
-                    placeholder="Ej: Reservar Mi Sesión"
+                    placeholder="Ex: Reservar a Minha Sessão"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                    Enlace del Botón (URL / WhatsApp)
+                    Ligação do Botão (URL / WhatsApp)
                   </label>
                   <input
                     className="w-full bg-[#0b0f19] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 transition-colors"
@@ -403,13 +403,13 @@ export default function Newsletter() {
             <div className="bg-[#111622]/90 border border-amber-500/20 rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
               <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Send className="w-4 h-4 text-amber-500" />
-                <span>4. Despacho de Campaña</span>
+                <span>4. Envio da Campanha</span>
               </div>
 
               {/* Envío de prueba */}
               <div className="pb-4 border-b border-white/[0.08]">
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Enviar prueba directa a mi correo:
+                  Enviar teste direto para o meu email:
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -417,7 +417,7 @@ export default function Newsletter() {
                     type="email"
                     value={testEmail}
                     onChange={e => setTestEmail(e.target.value)}
-                    placeholder="tu-correo@ejemplo.com"
+                    placeholder="o-teu-email@exemplo.com"
                   />
                   <button
                     type="button"
@@ -425,7 +425,7 @@ export default function Newsletter() {
                     onClick={handleSendTest}
                     disabled={sendingTest || !testEmail}
                   >
-                    <Send className="w-3.5 h-3.5" /> {sendingTest ? 'Enviando...' : 'Probar'}
+                    <Send className="w-3.5 h-3.5" /> {sendingTest ? 'A enviar...' : 'Testar'}
                   </button>
                 </div>
               </div>
@@ -437,7 +437,7 @@ export default function Newsletter() {
                     Audiencia: {currentAudienceInfo?.label || 'Todos'}
                   </div>
                   <div className="text-xs text-slate-400 mt-0.5">
-                    {currentAudienceInfo?.count || 0} destinatario(s) elegible(s) para este envío
+                    {currentAudienceInfo?.count || 0} destinatário(s) elegível(eis) para este envio
                   </div>
                 </div>
 
@@ -447,7 +447,7 @@ export default function Newsletter() {
                   onClick={handleSendCampaign}
                   disabled={sendingCampaign || (currentAudienceInfo?.count || 0) === 0}
                 >
-                  <Send className="w-4 h-4" /> {sendingCampaign ? 'Enviando Campaña...' : `Enviar a ${currentAudienceInfo?.count || 0} Clientes`}
+                  <Send className="w-4 h-4" /> {sendingCampaign ? 'A enviar Campanha...' : `Enviar para ${currentAudienceInfo?.count || 0} Clientes`}
                 </button>
               </div>
             </div>
@@ -459,9 +459,9 @@ export default function Newsletter() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <Eye className="w-4 h-4 text-amber-500" />
-                <span>Vista Previa en Tiempo Real</span>
+                <span>Pré-visualização em Tempo Real</span>
               </div>
-              <span className="text-xs text-slate-400">Renderizado responsivo</span>
+              <span className="text-xs text-slate-400">Design responsivo</span>
             </div>
 
             <div className="bg-[#0b0f19] border border-white/[0.08] rounded-2xl overflow-hidden shadow-2xl">
@@ -473,7 +473,7 @@ export default function Newsletter() {
                 />
               ) : (
                 <div className="p-12 text-center text-slate-400 text-sm">
-                  Generando vista previa...
+                  A gerar pré-visualização...
                 </div>
               )}
             </div>
@@ -484,38 +484,38 @@ export default function Newsletter() {
         <div className="bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-5 backdrop-blur-xl shadow-xl">
           <div className="flex items-center gap-2 text-base font-semibold text-white mb-4">
             <History className="w-4 h-4 text-amber-500" />
-            <span>Registro Histórico de Campañas</span>
+            <span>Registo Histórico de Campanhas</span>
           </div>
 
           {campaigns.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-sm">
-              No se han registrado envíos de campañas aún
+              Ainda não foram registados envios de campanhas
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/[0.08] text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    <th className="pb-3 px-4">Fecha</th>
-                    <th className="pb-3 px-4">Título & Asunto</th>
-                    <th className="pb-3 px-4">Audiencia</th>
-                    <th className="pb-3 px-4">Destinatarios</th>
+                    <th className="pb-3 px-4">Data</th>
+                    <th className="pb-3 px-4">Título & Assunto</th>
+                    <th className="pb-3 px-4">Audiência</th>
+                    <th className="pb-3 px-4">Destinatários</th>
                     <th className="pb-3 px-4">Estado</th>
-                    <th className="pb-3 px-4">Proveedor</th>
+                    <th className="pb-3 px-4">Fornecedor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
                   {campaigns.map(c => (
                     <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="py-3 px-4 text-xs text-slate-400">
-                        {new Date(c.fecha_envio).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(c.fecha_envio).toLocaleString('pt-PT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </td>
                       <td className="py-3 px-4">
                         <div className="font-semibold text-white">{c.titulo}</div>
                         <div className="text-xs text-slate-400 truncate max-w-xs">{c.asunto}</div>
                       </td>
                       <td className="py-3 px-4 text-xs capitalize text-slate-300">
-                        {c.audiencia === 'all' ? 'Todos' : (c.audiencia === 'vip' ? 'VIP' : (c.audiencia === 'special_dates' ? 'Fechas Especiales' : c.audiencia))}
+                        {c.audiencia === 'all' ? 'Todos' : (c.audiencia === 'vip' ? 'VIP' : (c.audiencia === 'special_dates' ? 'Datas Especiais' : c.audiencia))}
                       </td>
                       <td className="py-3 px-4 font-semibold text-white">
                         {c.destinatarios_count}

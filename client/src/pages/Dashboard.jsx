@@ -35,7 +35,7 @@ export default function Dashboard() {
           fetch('/api/bookings').catch(() => null),
           fetch('/api/bookings/calendar-notes').catch(() => null),
         ])
-        if (!kRes.ok) throw new Error('Error al cargar KPIs')
+        if (!kRes.ok) throw new Error('Erro ao carregar KPIs')
         const [kData, aData, oData, lData, bData, nData] = await Promise.all([
           kRes.json(), aRes.json(), oRes.json(), lRes.json(),
           bRes && bRes.ok ? bRes.json() : [],
@@ -65,7 +65,7 @@ export default function Dashboard() {
     }
     const text = buildDailyBriefingSpeech({ bookings, calendarNotes, alerts })
     speakText(text, {
-      lang: 'es-ES',
+      lang: 'pt-PT',
       onStart: () => setSpeaking(true),
       onEnd: () => setSpeaking(false),
       onError: () => setSpeaking(false)
@@ -75,7 +75,7 @@ export default function Dashboard() {
   if (loading) return (
     <div className="loading-spinner">
       <div className="spinner" />
-      <span>Cargando dashboard atelier...</span>
+      <span>A carregar painel do atelier...</span>
     </div>
   )
 
@@ -84,7 +84,7 @@ export default function Dashboard() {
       <div className="alert-danger-card">
         <XCircle size={24} className="text-danger" style={{ flexShrink: 0 }} />
         <div className="alert-text">
-          <div className="alert-name">Error de conexión</div>
+          <div className="alert-name">Erro de ligação</div>
           <div className="alert-msg">{error}</div>
         </div>
       </div>
@@ -95,8 +95,8 @@ export default function Dashboard() {
   const filteredOpportunities = opportunities.filter(o => {
     if (selectedFilter === 'all') return true
     const text = ((o.nombre || '') + ' ' + (o.motivo_recontacto || '') + ' ' + (o.tipo || '')).toLowerCase()
-    if (selectedFilter === 'bodas') return text.includes('boda') || text.includes('novio') || text.includes('matrimonial') || text.includes('aniversario')
-    if (selectedFilter === 'editorial') return text.includes('editorial') || text.includes('estudio') || text.includes('comercial') || text.includes('retrato') || text.includes('producto')
+    if (selectedFilter === 'bodas') return text.includes('boda') || text.includes('casamento') || text.includes('noiv') || text.includes('matrimonial') || text.includes('aniversario')
+    if (selectedFilter === 'editorial') return text.includes('editorial') || text.includes('estudio') || text.includes('estúdio') || text.includes('comercial') || text.includes('retrato') || text.includes('producto')
     return true
   })
 
@@ -118,13 +118,13 @@ export default function Dashboard() {
       <div className="dashboard-context-banner">
         <div>
           <div className="editorial-tag">
-            <span>Resumen Ejecutivo</span>
+            <span>Resumo Executivo</span>
             <span className="pulse-dot" />
-            <span>Temporada Activa 2025</span>
+            <span>Temporada Ativa 2025</span>
           </div>
-          <h1 className="dashboard-title">Panorama de Operaciones</h1>
+          <h1 className="dashboard-title">Visão Geral das Operações</h1>
           <p className="dashboard-subtitle">
-            Control de contrataciones, fidelización de clientes y acciones críticas de recontacto.
+            Controlo de sessões, fidelização de clientes e ações prioritárias de contacto.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={handleSpeakOverview}
-            title="Escuchar briefing hablado del estudio (Manos libres)"
+            title="Ouvir briefing falado do estúdio (Mãos livres)"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 14px', borderRadius: 10, cursor: 'pointer',
@@ -142,14 +142,14 @@ export default function Dashboard() {
             }}
           >
             {speaking ? <VolumeX size={15} /> : <Volume2 size={15} />}
-            <span>{speaking ? 'Detener Voz' : 'Escuchar Resumen'}</span>
+            <span>{speaking ? 'Parar Áudio' : 'Ouvir Resumo'}</span>
           </button>
 
           {calendarNotes.filter(n => !n.completado).length > 0 && (
             <button
               type="button"
               onClick={() => navigate('/bookings')}
-              title="Ver fechas marcadas y pre-reservas en el calendario"
+              title="Ver datas marcadas e pré-reservas no calendário"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
@@ -158,7 +158,7 @@ export default function Dashboard() {
               }}
             >
               <Bookmark size={14} />
-              <span>{calendarNotes.filter(n => !n.completado).length} Fechas Marcadas</span>
+              <span>{calendarNotes.filter(n => !n.completado).length} Datas Marcadas</span>
             </button>
           )}
 
@@ -167,7 +167,7 @@ export default function Dashboard() {
             onClick={() => navigate('/bookings')}
           >
             <Plus size={16} />
-            <span>Nueva Reserva</span>
+            <span>Nova Marcação</span>
           </button>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function Dashboard() {
         {/* Card 1: Reservas */}
         <div className="kpi-luxury-card">
           <div className="kpi-card-top">
-            <span className="kpi-card-title">Reservas del Mes</span>
+            <span className="kpi-card-title">Sessões do Mês</span>
             <div className="kpi-icon-box">
               <Calendar size={18} />
             </div>
@@ -186,18 +186,18 @@ export default function Dashboard() {
           <div className="kpi-metric-row">
             <span className="kpi-luxury-value">{bookingsCount}</span>
             <span className="kpi-trend-pill gold">
-              <ArrowUpRight size={12} /> +15% mes
+              <ArrowUpRight size={12} /> +15% mês
             </span>
           </div>
           <div className="kpi-card-footer">
-            <span>Próxima: Sesión Novios</span>
+            <span>Próxima: Sessão Noivos</span>
           </div>
         </div>
 
         {/* Card 2: Ingresos Totales (High Importance Gold) */}
         <div className="kpi-luxury-card" style={{ borderColor: 'rgba(245, 185, 85, 0.25)' }}>
           <div className="kpi-card-top">
-            <span className="kpi-card-title gold">Ingresos Totales</span>
+            <span className="kpi-card-title gold">Faturação Total</span>
             <div className="kpi-icon-box gold">
               <Euro size={18} />
             </div>
@@ -212,7 +212,7 @@ export default function Dashboard() {
             <div className="progress-bar-fill-gold" style={{ width: '82%' }} />
           </div>
           <div className="kpi-card-footer">
-            <span>Facturación neta cerrada</span>
+            <span>Faturação líquida fechada</span>
             <span style={{ color: 'var(--accent-gold-muted)', fontWeight: 600 }}>Meta 82%</span>
           </div>
         </div>
@@ -220,17 +220,17 @@ export default function Dashboard() {
         {/* Card 3: Cartera Activa */}
         <div className="kpi-luxury-card">
           <div className="kpi-card-top">
-            <span className="kpi-card-title">Cartera Activa</span>
+            <span className="kpi-card-title">Clientes Ativos</span>
             <div className="kpi-icon-box">
               <Users size={18} />
             </div>
           </div>
           <div className="kpi-metric-row">
             <span className="kpi-luxury-value">{activeClientsCount}</span>
-            <span className="kpi-trend-pill neutral">1 VIP • 3 Standard</span>
+            <span className="kpi-trend-pill neutral">1 VIP • 3 Padrão</span>
           </div>
           <div className="kpi-card-footer">
-            <span>Ratio retención alto</span>
+            <span>Taxa de retenção alta</span>
             <span style={{ color: '#bcc7de', fontWeight: 600 }}>100% NPS</span>
           </div>
         </div>
@@ -238,18 +238,18 @@ export default function Dashboard() {
         {/* Card 4: Acciones Críticas */}
         <div className="kpi-luxury-card" style={{ borderColor: 'rgba(239, 68, 68, 0.2)' }}>
           <div className="kpi-card-top">
-            <span className="kpi-card-title error">Acciones Críticas</span>
+            <span className="kpi-card-title error">Ações Críticas</span>
             <div className="kpi-icon-box error">
               <AlertTriangle size={18} />
             </div>
           </div>
           <div className="kpi-metric-row">
             <span className="kpi-luxury-value error">{criticalCount}</span>
-            <span className="kpi-trend-pill error">Requerida</span>
+            <span className="kpi-trend-pill error">Ação necessária</span>
           </div>
           <div className="kpi-card-footer">
-            <span style={{ color: 'var(--error)' }}>Contrato pendiente</span>
-            <span style={{ color: 'var(--text-muted)' }}>Prioridad Alta</span>
+            <span style={{ color: 'var(--error)' }}>Contrato pendente</span>
+            <span style={{ color: 'var(--text-muted)' }}>Prioridade Alta</span>
           </div>
         </div>
 
@@ -273,8 +273,8 @@ export default function Dashboard() {
                   <AlertTriangle size={18} />
                 </div>
                 <div>
-                  <h2 className="luxury-card-title">Alertas Operativas</h2>
-                  <p className="luxury-card-subtitle">Seguimiento de contratos y cobros pendientes</p>
+                  <h2 className="luxury-card-title">Alertas Operacionais</h2>
+                  <p className="luxury-card-subtitle">Acompanhamento de contratos e pagamentos pendentes</p>
                 </div>
               </div>
               <span style={{
@@ -299,12 +299,12 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.92rem' }}>María González</span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.92rem' }}>Maria González</span>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>•</span>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Sesión Matrimonial</span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Sessão Matrimonial</span>
                     </div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                      <AlertTriangle size={12} /> Sin contrato firmado (Vence en 48 horas)
+                      <AlertTriangle size={12} /> Sem contrato assinado (Expira em 48 horas)
                     </div>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ export default function Dashboard() {
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--error)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
                         <AlertTriangle size={12} /> {a.alerta || a.mensaje_alerta}
-                        {a.saldo_pendiente > 0 && ` (${fmt(a.saldo_pendiente)} saldo)`}
+                        {a.saldo_pendiente > 0 && ` (${fmt(a.saldo_pendiente)} em dívida)`}
                       </div>
                     </div>
                   </div>
@@ -347,7 +347,7 @@ export default function Dashboard() {
                     onClick={() => navigate('/bookings')}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
                   >
-                    <span>Ver detalle</span>
+                    <span>Ver detalhe</span>
                     <ArrowRight size={14} />
                   </button>
                 </div>
@@ -368,7 +368,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h2 className="luxury-card-title">Oportunidades & Recontacto</h2>
-                  <p className="luxury-card-subtitle">Clientes durmientes para reactivación y fechas especiales</p>
+                  <p className="luxury-card-subtitle">Clientes inativos para reativação e datas comemorativas</p>
                 </div>
               </div>
               <span className="sync-badge" style={{ color: 'var(--accent-gold-bright)', borderColor: 'rgba(245, 185, 85, 0.2)' }}>
@@ -388,7 +388,7 @@ export default function Dashboard() {
                 className={`filter-pill ${selectedFilter === 'bodas' ? 'active' : ''}`}
                 onClick={() => setSelectedFilter('bodas')}
               >
-                Bodas & Eventos
+                Casamentos & Eventos
               </button>
               <button 
                 className={`filter-pill ${selectedFilter === 'editorial' ? 'active' : ''}`}
@@ -401,11 +401,11 @@ export default function Dashboard() {
             {/* Contact Cards List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {(filteredOpportunities.length > 0 ? filteredOpportunities : opportunities).slice(0, 4).map((o, idx) => {
-                const pitch = o.whatsapp_pitch || `¡Hola ${o.nombre}! Te saludamos del atelier Diogo Studio...`
+                const pitch = o.whatsapp_pitch || `Olá ${o.nombre}! Falamos do atelier Diogo Studio...`
                 const waUrl = formatWhatsAppUrl(o.telefono, pitch) || `https://wa.me/?text=${encodeURIComponent(pitch)}`
-                const initials = getInitials(o.nombre || (idx === 0 ? 'María González' : (idx === 1 ? 'Ana Martínez' : 'Carlos Rodríguez')))
+                const initials = getInitials(o.nombre || (idx === 0 ? 'Maria González' : (idx === 1 ? 'Ana Martínez' : 'Carlos Rodríguez')))
                 const tier = idx === 0 ? 'VIP' : (idx === 1 ? 'Studio' : 'Comercial')
-                const reason = o.motivo_recontacto || (idx === 0 ? 'Inactivo: 760 días • Boda 2023' : (idx === 1 ? 'Inactivo: 830 días • Headshots' : 'Inactivo: 837 días • Campaña Moda'))
+                const reason = o.motivo_recontacto || (idx === 0 ? 'Inativo há 760 dias • Casamento 2023' : (idx === 1 ? 'Inativo há 830 dias • Retratos' : 'Inativo há 837 dias • Campanha Moda'))
 
                 return (
                   <div key={idx} className="opportunity-luxury-item">
@@ -417,7 +417,7 @@ export default function Dashboard() {
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.92rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {o.nombre || (idx === 0 ? 'María González' : (idx === 1 ? 'Ana Martínez' : 'Carlos Rodríguez'))}
+                            {o.nombre || (idx === 0 ? 'Maria González' : (idx === 1 ? 'Ana Martínez' : 'Carlos Rodríguez'))}
                           </span>
                           <span style={{
                             fontSize: '0.68rem', padding: '1px 6px', borderRadius: 4,
@@ -440,7 +440,7 @@ export default function Dashboard() {
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="btn-whatsapp-luxury"
-                      title="Enviar mensaje personalizado por WhatsApp"
+                      title="Enviar mensagem personalizada pelo WhatsApp"
                     >
                       <MessageCircle size={14} />
                       <span>WhatsApp</span>
@@ -456,7 +456,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={16} style={{ color: 'var(--accent-gold-muted)', flexShrink: 0 }} />
                 <span>
-                  <strong>Recomendación Atelier:</strong> Ofrece a María González una pre-venta exclusiva de álbum fine-art antes de finalizar el trimestre.
+                  <strong>Recomendação Atelier:</strong> Oferece a Maria González uma pré-venda exclusiva de álbum fine-art antes do fecho do trimestre.
                 </span>
               </div>
               <button 
@@ -466,7 +466,7 @@ export default function Dashboard() {
                   fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' 
                 }}
               >
-                Ver plantillas
+                Ver modelos
               </button>
             </div>
 
@@ -489,7 +489,7 @@ export default function Dashboard() {
                   <Trophy size={18} />
                 </div>
                 <div>
-                  <h2 className="luxury-card-title">Fidelidad de Clientes</h2>
+                  <h2 className="luxury-card-title">Fidelização de Clientes</h2>
                   <p className="luxury-card-subtitle">Valor de ciclo de vida acumulado (LTV)</p>
                 </div>
               </div>
@@ -507,14 +507,14 @@ export default function Dashboard() {
             {/* Ranking List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {(loyalty.length > 0 ? loyalty : [
-                { id: 1, nombre: 'María González', total_gastado: 5050, sesiones_completadas: 2, descuento_sugerido_pct: 15 },
-                { id: 2, nombre: 'Carlos Rodríguez', total_gastado: 3000, sesiones_completadas: 1, descuento_sugerido_pct: 0 },
-                { id: 3, nombre: 'Ana Martínez', total_gastado: 1100, sesiones_completadas: 1, descuento_sugerido_pct: 0 },
-                { id: 4, nombre: 'Luis Fernández', total_gastado: 0, sesiones_completadas: 0, descuento_sugerido_pct: 0 }
+                { id: 1, nombre: 'Maria Gonçalves', total_gastado: 5050, sesiones_completadas: 2, descuento_sugerido_pct: 15 },
+                { id: 2, nombre: 'Carlos Rodrigues', total_gastado: 3000, sesiones_completadas: 1, descuento_sugerido_pct: 0 },
+                { id: 3, nombre: 'Ana Martins', total_gastado: 1100, sesiones_completadas: 1, descuento_sugerido_pct: 0 },
+                { id: 4, nombre: 'Luís Fernandes', total_gastado: 0, sesiones_completadas: 0, descuento_sugerido_pct: 0 }
               ]).slice(0, 4).map((c, index) => {
                 const rank = index + 1
                 const isTop1 = rank === 1
-                const tier = isTop1 ? 'Plata' : (rank <= 3 ? 'Bronce' : 'Nuevo')
+                const tier = isTop1 ? 'Prata' : (rank <= 3 ? 'Bronze' : 'Novo')
                 const rankClass = isTop1 ? 'gold' : (rank === 2 ? 'silver' : 'bronze')
 
                 return (
@@ -543,7 +543,7 @@ export default function Dashboard() {
                           </span>
                         </div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                          {c.sesiones_completadas || (isTop1 ? 2 : (rank <= 3 ? 1 : 0))} {c.sesiones_completadas === 1 ? 'sesión contratada' : 'sesiones contratadas'}
+                          {c.sesiones_completadas || (isTop1 ? 2 : (rank <= 3 ? 1 : 0))} {c.sesiones_completadas === 1 ? 'sessão contratada' : 'sessões contratadas'}
                         </div>
                       </div>
                     </div>
@@ -558,7 +558,7 @@ export default function Dashboard() {
                         {fmt(c.total_gastado)}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {isTop1 ? '76% del total' : (c.total_gastado > 0 ? 'Completado' : 'Prospección')}
+                        {isTop1 ? '76% do total' : (c.total_gastado > 0 ? 'Concluído' : 'Prospeção')}
                       </div>
                     </div>
                   </div>
@@ -579,19 +579,19 @@ export default function Dashboard() {
                   <Camera size={18} />
                 </div>
                 <div>
-                  <h3 className="luxury-card-title">Capacidad de Estudio</h3>
-                  <p className="luxury-card-subtitle">Ocupación y flujo de producción</p>
+                  <h3 className="luxury-card-title">Ocupação do Estúdio</h3>
+                  <p className="luxury-card-subtitle">Fluxo de produção e disponibilidade</p>
                 </div>
               </div>
               <span className="sync-badge" style={{ color: 'var(--accent-gold-muted)', borderColor: 'rgba(245, 185, 85, 0.2)' }}>
-                Noviembre 2025
+                Novembro 2025
               </span>
             </div>
 
             {/* Occupancy Bar */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: 6 }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Ocupación de plató principal</span>
+                <span style={{ color: 'var(--text-secondary)' }}>Ocupação do estúdio principal</span>
                 <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>65%</span>
               </div>
               <div className="progress-bar-bg">
@@ -603,10 +603,10 @@ export default function Dashboard() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div className="studio-stat-box">
                 <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  Entregas pendientes
+                  Entregas pendentes
                 </span>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  3 Galerías
+                  3 Galerias
                 </span>
               </div>
               <div className="studio-stat-box">
@@ -614,7 +614,7 @@ export default function Dashboard() {
                   Próximo Shooting
                 </span>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--accent-gold-bright)' }}>
-                  Mañana 10:00
+                  Amanhã 10:00
                 </span>
               </div>
             </div>
@@ -628,7 +628,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                 <Camera size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  Próximo shooting: Lookbook Editorial Studio
+                  Próxima sessão: Lookbook Editorial Studio
                 </span>
               </div>
               <ChevronRight size={16} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />

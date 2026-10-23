@@ -9,11 +9,11 @@ import {
 import StatusBadge from '../components/StatusBadge'
 import { normalizePhone, formatWhatsAppUrl } from '../utils/whatsapp'
 
-const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v || 0)
+const fmt = v => new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v || 0)
 const fmtDate = d => {
   if (!d) return '—'
   const dateObj = new Date(d.includes('T') ? d : d + 'T00:00:00')
-  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
+  return isNaN(dateObj.getTime()) ? d : dateObj.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 const EMPTY_CLIENT = { 
@@ -28,9 +28,9 @@ const EMPTY_CLIENT = {
 }
 
 function getLoyaltyTier(pct) {
-  if (pct >= 20) return { label: 'Oro', tierKey: 'oro', cls: 'loyalty-oro', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', pct: 20 }
-  if (pct >= 15) return { label: 'Plata', tierKey: 'plata', cls: 'loyalty-plata', color: '#bcc7de', bg: 'rgba(188, 199, 222, 0.15)', pct: 15 }
-  return { label: 'Bronce', tierKey: 'bronce', cls: 'loyalty-bronce', color: '#c78d4d', bg: 'rgba(199, 141, 77, 0.15)', pct: pct || 0 }
+  if (pct >= 20) return { label: 'Ouro', tierKey: 'oro', cls: 'loyalty-oro', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)', pct: 20 }
+  if (pct >= 15) return { label: 'Prata', tierKey: 'plata', cls: 'loyalty-plata', color: '#bcc7de', bg: 'rgba(188, 199, 222, 0.15)', pct: 15 }
+  return { label: 'Bronze', tierKey: 'bronce', cls: 'loyalty-bronce', color: '#c78d4d', bg: 'rgba(199, 141, 77, 0.15)', pct: pct || 0 }
 }
 
 const getInitials = (name = '') => {
@@ -70,7 +70,7 @@ export default function Clients() {
   const fetchClientsList = async () => {
     try {
       const res = await fetch('/api/clients')
-      if (!res.ok) throw new Error('Error al obtener clientes')
+      if (!res.ok) throw new Error('Erro ao carregar clientes')
       const data = await res.json()
       const list = Array.isArray(data) ? data : data.clients || []
       setClients(list)
@@ -105,7 +105,7 @@ export default function Clients() {
             setRecommendedPromo(data.recommended_promo || null)
             setReferrers(data.referrers || [])
           } else {
-            setError('Cliente no encontrado')
+            setError('Cliente não encontrado')
           }
         })
         .catch(err => setError(err.message))
@@ -127,13 +127,13 @@ export default function Clients() {
         body: JSON.stringify(editData)
       })
       const updated = await res.json()
-      if (!res.ok) throw new Error(updated.error || 'Error al actualizar cliente')
+      if (!res.ok) throw new Error(updated.error || 'Erro ao atualizar cliente')
       
       const clientObj = updated.client || updated
       setClients(prev => prev.map(c => (c.id || c.id_cliente) === currentId ? clientObj : c))
       setSelected(clientObj)
       setSelectedDrawer(clientObj)
-      setSuccessMsg('Ficha de cliente guardada correctamente')
+      setSuccessMsg('Ficha de cliente guardada com sucesso')
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch(e) {
       setError(e.message)
@@ -153,14 +153,14 @@ export default function Clients() {
         body: JSON.stringify(newClient)
       })
       const created = await res.json()
-      if (!res.ok) throw new Error(created.error || 'Error al registrar cliente')
+      if (!res.ok) throw new Error(created.error || 'Erro ao registar cliente')
       
       const clientObj = created.client || created
       setClients(prev => [clientObj, ...prev])
       setSelectedDrawer(clientObj)
       setShowModal(false)
       setNewClient(EMPTY_CLIENT)
-      setSuccessMsg(`Cliente "${clientObj.nombre}" registrado exitosamente`)
+      setSuccessMsg(`Cliente "${clientObj.nombre}" registado com sucesso`)
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch(e) {
       setError(e.message)
@@ -171,7 +171,7 @@ export default function Clients() {
 
   const exportCSV = () => {
     if (clients.length === 0) return
-    const headers = ['ID', 'Nombre', 'WhatsApp', 'Email', 'Nivel', 'LTV Inversión', 'Referido Por']
+    const headers = ['ID', 'Nome', 'WhatsApp', 'Email', 'Nível', 'LTV Investimento', 'Recomendado Por']
     const rows = clients.map(c => [
       c.id || c.id_cliente,
       `"${c.nombre || ''}"`,
@@ -179,7 +179,7 @@ export default function Clients() {
       `"${c.email || ''}"`,
       getLoyaltyTier(c.descuento_sugerido_pct || 0).label,
       c.total_gastado || c.ltv || 0,
-      `"${c.referred_by_name || 'Directo'}"`
+      `"${c.referred_by_name || 'Direto'}"`
     ])
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
     const encodedUri = encodeURI(csvContent)
@@ -235,7 +235,7 @@ export default function Clients() {
     const tier = getLoyaltyTier(loyalty?.descuento_sugerido_pct || selected?.descuento_sugerido_pct || 0)
     const phone = normalizePhone(selected.telefono)
     const firstName = (selected.nombre || 'cliente').split(' ')[0]
-    const defaultPitch = `¡Hola ${firstName}! ✨ Te saludamos con mucho cariño desde Diogo Studio. Queremos recordarte que como cliente VIP nivel ${tier.label}, cuentas con un ${tier.pct}% de beneficio exclusivo para tu próxima sesión fotográfica. ¿Te gustaría agendar una fecha especial? 📸`
+    const defaultPitch = `Olá ${firstName}! ✨ Saudações com muito carinho do Diogo Studio. Gostaríamos de lembrar que, como cliente VIP nível ${tier.label}, tens um benefício exclusivo de ${tier.pct}% para a tua próxima sessão fotográfica. Gostarias de marcar uma data especial? 📸`
 
     return (
       <div className="client-detail-page">
@@ -244,7 +244,7 @@ export default function Clients() {
           onClick={() => navigate('/clients')} 
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16, background: '#1c202d', border: '1px solid #2d3548', padding: '6px 14px', borderRadius: 8, color: '#cbd5e1', cursor: 'pointer' }}
         >
-          <ArrowLeft size={16} /> Volver al Directorio
+          <ArrowLeft size={16} /> Voltar ao Diretório
         </button>
 
         {error && (
@@ -282,11 +282,11 @@ export default function Clients() {
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4, flexWrap: 'wrap' }}>
                 <span className={`loyalty-badge ${tier.cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', fontSize: '0.78rem' }}>
-                  <Award size={14} /> Nivel {tier.label} ({tier.pct}% Beneficio Sugerido)
+                  <Award size={14} /> Nível {tier.label} ({tier.pct}% Benefício Sugerido)
                 </span>
                 {selected.referred_by_name && (
                   <span className="text-muted" style={{ fontSize: '0.82rem' }}>
-                    • Referido por: <strong style={{ color: '#e8b86d' }}>{selected.referred_by_name}</strong>
+                    • Recomendado por: <strong style={{ color: '#e8b86d' }}>{selected.referred_by_name}</strong>
                   </span>
                 )}
               </div>
@@ -305,11 +305,11 @@ export default function Clients() {
                   borderRadius: 8, fontWeight: 700, fontSize: '0.85rem', textDecoration: 'none'
                 }}
               >
-                <MessageCircle size={16} /> WhatsApp Directo
+                <MessageCircle size={16} /> WhatsApp Direto
               </a>
             )}
             <button className="btn-primary" onClick={handleSave} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Save size={16} /> {saving ? 'Guardando...' : 'Guardar Cambios'}
+              <Save size={16} /> {saving ? 'A guardar...' : 'Guardar Alterações'}
             </button>
           </div>
         </div>
@@ -321,7 +321,7 @@ export default function Clients() {
               <Award size={20} />
             </div>
             <div>
-              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Estatus de Cliente</div>
+              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Estatuto de Cliente</div>
               <div className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>VIP {tier.label}</div>
             </div>
           </div>
@@ -331,7 +331,7 @@ export default function Clients() {
               <Gift size={20} />
             </div>
             <div>
-              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Descuento Sugerido</div>
+              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Desconto Sugerido</div>
               <div className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4ade80' }}>{loyalty?.descuento_sugerido_pct || selected?.descuento_sugerido_pct || 0}%</div>
             </div>
           </div>
@@ -341,8 +341,8 @@ export default function Clients() {
               <Calendar size={20} />
             </div>
             <div>
-              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Sesiones Atelier</div>
-              <div className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#60a5fa' }}>{loyalty?.sesiones_completadas || bookings.length || 0} Tomas</div>
+              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Sessões Atelier</div>
+              <div className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: '#60a5fa' }}>{loyalty?.sesiones_completadas || bookings.length || 0} Sessões</div>
             </div>
           </div>
 
@@ -351,7 +351,7 @@ export default function Clients() {
               <Sparkles size={20} />
             </div>
             <div>
-              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Inversión Histórica LTV</div>
+              <div className="kpi-label" style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Investimento Histórico LTV</div>
               <div className="kpi-value text-accent" style={{ fontSize: '1.25rem', fontWeight: 700 }}>
                 {fmt(bookings.reduce((acc, b) => acc + parseFloat(b.monto_bruto || b.precio_base || 0), 0))}
               </div>
@@ -368,7 +368,7 @@ export default function Clients() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <Sparkles size={18} className="text-accent" />
-                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>Mensaje Personalizado de Fidelización</span>
+                  <span style={{ fontWeight: 700, color: '#f8fafc' }}>Mensagem Personalizada de Fidelização</span>
                 </div>
                 {phone && (
                   <a
@@ -402,7 +402,7 @@ export default function Clients() {
                   }}
                 >
                   {copiedPitch ? <Check size={14} className="text-success" /> : <Copy size={14} />}
-                  {copiedPitch ? '¡Copiado al portapapeles!' : 'Copiar texto'}
+                  {copiedPitch ? 'Copiado para a área de transferência!' : 'Copiar texto'}
                 </button>
               </div>
             </div>
@@ -410,12 +410,12 @@ export default function Clients() {
             {/* Ficha de Edición */}
             <div className="card" style={{ marginBottom: 20 }}>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <Edit size={18} className="text-accent" /> Datos Personales y Fechas Especiales
+                <Edit size={18} className="text-accent" /> Dados Pessoais e Datas Especiais
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Nombre Completo *</label>
+                  <label className="form-label">Nome Completo *</label>
                   <input
                     className="form-input"
                     value={editData.nombre || ''}
@@ -423,7 +423,7 @@ export default function Clients() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Teléfono (WhatsApp)</label>
+                  <label className="form-label">Telemóvel (WhatsApp)</label>
                   <input
                     className="form-input"
                     value={editData.telefono || ''}
@@ -434,7 +434,7 @@ export default function Clients() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Correo Electrónico</label>
+                  <label className="form-label">Email</label>
                   <input
                     className="form-input"
                     type="email"
@@ -448,14 +448,14 @@ export default function Clients() {
                     className="form-input"
                     value={editData.instagram || ''}
                     onChange={e => setEditData({ ...editData, instagram: e.target.value })}
-                    placeholder="@usuario"
+                    placeholder="@utilizador"
                   />
                 </div>
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Aniversario (Boda / Pareja)</label>
+                  <label className="form-label">Aniversário (Casamento / Relação)</label>
                   <input
                     className="form-input"
                     type="date"
@@ -464,7 +464,7 @@ export default function Clients() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Cumpleaños Hijos o Parto</label>
+                  <label className="form-label">Aniversário dos Filhos ou Parto</label>
                   <input
                     className="form-input"
                     type="date"
@@ -475,13 +475,13 @@ export default function Clients() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Cliente que lo Recomendó</label>
+                <label className="form-label">Cliente que Recomendou</label>
                 <select
                   className="form-select"
                   value={editData.referred_by_client_id || ''}
                   onChange={e => setEditData({ ...editData, referred_by_client_id: e.target.value })}
                 >
-                  <option value="">Ninguno / Llegó Directo</option>
+                  <option value="">Nenhum / Chegou Direto</option>
                   {referrers.map(r => (
                     <option key={r.id} value={r.id}>{r.nombre}</option>
                   ))}
@@ -489,13 +489,13 @@ export default function Clients() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Notas de Estilo y Preferencias Fotográficas</label>
+                <label className="form-label">Notas de Estilo e Preferências Fotográficas</label>
                 <textarea
                   className="form-textarea"
                   value={editData.notas_estilo_preferencias || ''}
                   onChange={e => setEditData({ ...editData, notas_estilo_preferencias: e.target.value })}
                   rows={3}
-                  placeholder="Ej: Prefiere luz cálida, fotografía espontánea sin poses forzadas..."
+                  placeholder="Ex: Prefere luz quente, fotografia espontânea sem poses forçadas..."
                 />
               </div>
             </div>
@@ -505,13 +505,13 @@ export default function Clients() {
             <div className="card" style={{ marginBottom: 20 }}>
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Calendar size={18} className="text-accent" /> Historial de Sesiones
+                  <Calendar size={18} className="text-accent" /> Histórico de Sessões
                 </span>
                 <span className="text-muted" style={{ fontSize: '0.8rem' }}>({bookings.length})</span>
               </div>
 
               {bookings.length === 0 ? (
-                <div className="no-data" style={{ padding: 20, textAlign: 'center' }}>Sin reservas registradas</div>
+                <div className="no-data" style={{ padding: 20, textAlign: 'center' }}>Sem marcações registadas</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {bookings.map(b => (
@@ -521,7 +521,7 @@ export default function Clients() {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                         <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#f8fafc' }}>
-                          {b.servicio_nombre || 'Sesión Fotográfica'}
+                          {b.servicio_nombre || 'Sessão Fotográfica'}
                         </div>
                         <StatusBadge status={b.estado} />
                       </div>
@@ -536,7 +536,7 @@ export default function Clients() {
                       {b.url_galeria && (
                         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid #232a3b' }}>
                           <a href={b.url_galeria} target="_blank" rel="noopener noreferrer" className="text-accent" style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <ExternalLink size={12} /> Ver Galería Entregada
+                            <ExternalLink size={12} /> Ver Galeria Entregue
                           </a>
                         </div>
                       )}
@@ -549,13 +549,13 @@ export default function Clients() {
             <div className="card" style={{ background: 'linear-gradient(135deg, #1f2536 0%, #151821 100%)', border: '1px solid #333d54' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <UserCheck size={18} className="text-accent" />
-                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>Red de Referidos</span>
+                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>Rede de Recomendações</span>
               </div>
               <div className="text-muted" style={{ fontSize: '0.82rem', lineHeight: 1.5 }}>
-                Cada cliente recomendado por <strong>{selected.nombre}</strong> suma beneficios acumulables para su próximo paquete.
+                Cada cliente recomendado por <strong>{selected.nombre}</strong> acumula benefícios para o seu próximo pacote.
               </div>
               <div style={{ marginTop: 12, padding: '8px 12px', background: '#0f121a', borderRadius: 8, border: '1px solid #282f42', fontSize: '0.78rem', color: '#cbd5e1' }}>
-                💡 Enlace sugerido para compartir: 
+                💡 Ligação sugerida para partilhar: 
                 <div style={{ color: '#e8b86d', fontWeight: 600, marginTop: 2 }}>
                   diogostudio.com/promo?ref={selected.id || selected.id_cliente}
                 </div>
@@ -604,7 +604,7 @@ export default function Clients() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.01em' }}>
-                  Directorio de Clientes
+                  Diretório de Clientes
                 </h1>
                 <span style={{
                   background: 'rgba(232, 176, 114, 0.15)', color: '#F5B955',
@@ -614,7 +614,7 @@ export default function Clients() {
                 </span>
               </div>
               <p style={{ margin: '4px 0 0 0', color: '#94A3B8', fontSize: '0.88rem' }}>
-                {totalCount} clientes registrados con seguimiento personalizado, historial fotográfico y perfil de facturación.
+                {totalCount} clientes registados com acompanhamento personalizado, histórico fotográfico e perfil de faturação.
               </p>
             </div>
           </div>
@@ -642,7 +642,7 @@ export default function Clients() {
                 transition: 'all 0.15s ease'
               }}
             >
-              <Plus size={18} /> Nuevo Cliente
+              <Plus size={18} /> Novo Cliente
             </button>
           </div>
 
@@ -657,20 +657,20 @@ export default function Clients() {
             <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Total Clientes</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
               <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC' }}>{totalCount}</span>
-              <span style={{ fontSize: '0.75rem', color: '#F5B955', fontWeight: 600 }}>+100% activo</span>
+              <span style={{ fontSize: '0.75rem', color: '#F5B955', fontWeight: 600 }}>+100% ativo</span>
             </div>
           </div>
 
           <div style={{ padding: 12, borderRadius: 10, background: 'rgba(30, 31, 38, 0.6)', backdropFilter: 'blur(4px)' }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Nivel Plata / VIP</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Nível Prata / VIP</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
               <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC' }}>{plataCount + oroCount}</span>
-              <span style={{ fontSize: '0.75rem', color: '#bcc7de', fontWeight: 600 }}>{totalCount > 0 ? Math.round(((plataCount + oroCount) / totalCount) * 100) : 0}% del total</span>
+              <span style={{ fontSize: '0.75rem', color: '#bcc7de', fontWeight: 600 }}>{totalCount > 0 ? Math.round(((plataCount + oroCount) / totalCount) * 100) : 0}% do total</span>
             </div>
           </div>
 
           <div style={{ padding: 12, borderRadius: 10, background: 'rgba(30, 31, 38, 0.6)', backdropFilter: 'blur(4px)' }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Nivel Bronce</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Nível Bronze</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
               <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F8FAFC' }}>{bronceCount}</span>
               <span style={{ fontSize: '0.75rem', color: '#C78D4D', fontWeight: 600 }}>Standard</span>
@@ -678,7 +678,7 @@ export default function Clients() {
           </div>
 
           <div style={{ padding: 12, borderRadius: 10, background: 'rgba(30, 31, 38, 0.6)', backdropFilter: 'blur(4px)' }}>
-            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Valor Facturado (LTV)</span>
+            <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>Valor Faturado (LTV)</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
               <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#F5B955' }}>{fmt(ltvTotal)}</span>
               <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Atelier</span>
@@ -710,7 +710,7 @@ export default function Clients() {
           <input
             type="text"
             className="form-input"
-            placeholder="Buscar cliente por nombre, email o teléfono..."
+            placeholder="Pesquisar cliente por nome, email ou telemóvel..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{
@@ -745,7 +745,7 @@ export default function Clients() {
               border: 'none', cursor: 'pointer', transition: 'all 0.15s ease'
             }}
           >
-            Plata ({plataCount + oroCount})
+            Prata ({plataCount + oroCount})
           </button>
           
           <button
@@ -757,7 +757,7 @@ export default function Clients() {
               border: 'none', cursor: 'pointer', transition: 'all 0.15s ease'
             }}
           >
-            Bronce ({bronceCount})
+            Bronze ({bronceCount})
           </button>
         </div>
       </div>
@@ -771,7 +771,7 @@ export default function Clients() {
             
             {filteredClients.length === 0 ? (
               <div className="no-data" style={{ padding: 40, textAlign: 'center' }}>
-                No se encontraron clientes con los filtros seleccionados.
+                Não foram encontrados clientes com os filtros selecionados.
               </div>
             ) : (
               <>
@@ -780,12 +780,12 @@ export default function Clients() {
                   <table className="data-table" style={{ width: '100%' }}>
                     <thead>
                       <tr style={{ background: 'rgba(40, 42, 48, 0.6)', color: '#64748B', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        <th style={{ padding: '14px 18px', fontWeight: 600 }}>Cliente & Nivel</th>
+                        <th style={{ padding: '14px 18px', fontWeight: 600 }}>Cliente & Nível</th>
                         <th style={{ padding: '14px 14px', fontWeight: 600 }}>Contacto (WhatsApp)</th>
                         <th style={{ padding: '14px 14px', fontWeight: 600 }}>Email</th>
                         <th style={{ padding: '14px 14px', fontWeight: 600 }}>Próximo Evento</th>
-                        <th style={{ padding: '14px 14px', fontWeight: 600 }}>Referido por</th>
-                        <th style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 600 }}>Acciones</th>
+                        <th style={{ padding: '14px 14px', fontWeight: 600 }}>Recomendado por</th>
+                        <th style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 600 }}>Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -870,7 +870,7 @@ export default function Clients() {
                                   color: '#64748B', fontSize: '0.75rem'
                                 }}>
                                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#50453a' }} />
-                                  Sin eventos
+                                  Sem eventos
                                 </span>
                               )}
                             </td>
@@ -882,7 +882,7 @@ export default function Clients() {
                                   <span>{c.referred_by_name}</span>
                                 </div>
                               ) : (
-                                <span style={{ color: '#64748B' }}>Directo</span>
+                                <span style={{ color: '#64748B' }}>Direto</span>
                               )}
                             </td>
 
@@ -974,7 +974,7 @@ export default function Clients() {
                               <MessageCircle size={14} /> WhatsApp
                             </a>
                           ) : (
-                            <span style={{ color: '#64748B', fontSize: '0.78rem' }}>Sin teléfono</span>
+                            <span style={{ color: '#64748B', fontSize: '0.78rem' }}>Sem telemóvel</span>
                           )}
 
                           <button
@@ -997,10 +997,10 @@ export default function Clients() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               color: '#64748B', fontSize: '0.8rem'
             }}>
-              <span>Mostrando {filteredClients.length} de {totalCount} clientes activos</span>
+              <span>A mostrar {filteredClients.length} de {totalCount} clientes ativos</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#F5B955' }} />
-                <span>Sincronizado con Agenda Diogo Atelier</span>
+                <span>Sincronizado com Agenda Diogo Atelier</span>
               </div>
             </div>
 
@@ -1019,13 +1019,13 @@ export default function Clients() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', fontWeight: 600 }}>
-                    Ficha del Cliente
+                    Ficha do Cliente
                   </span>
                   <span style={{
                     padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
                     background: activeDrawerTier?.bg, color: activeDrawerTier?.color
                   }}>
-                    Nivel {activeDrawerTier?.label}
+                    Nível {activeDrawerTier?.label}
                   </span>
                 </div>
 
@@ -1044,7 +1044,7 @@ export default function Clients() {
                       {selectedDrawer.nombre}
                     </h2>
                     <p style={{ margin: '2px 0 0 0', color: '#94A3B8', fontSize: '0.82rem' }}>
-                      {selectedDrawer.email || 'Sin correo registrado'}
+                      {selectedDrawer.email || 'Sem email registado'}
                     </p>
                     {drawerPhone && (
                       <a
@@ -1062,13 +1062,13 @@ export default function Clients() {
                 {/* Mini Grid Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, margin: '14px 0', padding: 10, background: '#1e1f26', borderRadius: 10 }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Sesiones Atelier</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Sessões Atelier</span>
                     <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F8FAFC', marginTop: 2 }}>
-                      {selectedDrawer.total_reservas || 1} Tomas
+                      {selectedDrawer.total_reservas || 1} Sessões
                     </span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Inversión Total</span>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Investimento Total</span>
                     <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#F5B955', marginTop: 2 }}>
                       {fmt(selectedDrawer.total_gastado || selectedDrawer.ltv || 0)}
                     </span>
@@ -1078,20 +1078,20 @@ export default function Clients() {
                 {/* Additional Info Rows */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.82rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                    <span style={{ color: '#64748B' }}>Referencia:</span>
+                    <span style={{ color: '#64748B' }}>Referência:</span>
                     <span style={{ color: '#F8FAFC', fontWeight: 500 }}>
-                      {selectedDrawer.referred_by_name || 'Directo (Campaña Editorial)'}
+                      {selectedDrawer.referred_by_name || 'Direto (Campanha Editorial)'}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                    <span style={{ color: '#64748B' }}>Próximo Disparo:</span>
+                    <span style={{ color: '#64748B' }}>Próximo Evento:</span>
                     <span style={{ color: selectedDrawer.proximo_evento ? '#F5B955' : '#94A3B8' }}>
-                      {selectedDrawer.proximo_evento ? `${selectedDrawer.proximo_evento.tipo} (${selectedDrawer.proximo_evento.dias}d)` : 'Sin eventos programados'}
+                      {selectedDrawer.proximo_evento ? `${selectedDrawer.proximo_evento.tipo} (${selectedDrawer.proximo_evento.dias}d)` : 'Sem eventos programados'}
                     </span>
                   </div>
                   {selectedDrawer.notas_estilo_preferencias && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                      <span style={{ color: '#64748B' }}>Estilo Asignado:</span>
+                      <span style={{ color: '#64748B' }}>Estilo Atribuído:</span>
                       <span style={{ color: '#F5B955', fontWeight: 500 }}>
                         {selectedDrawer.notas_estilo_preferencias.slice(0, 24)}...
                       </span>
@@ -1109,7 +1109,7 @@ export default function Clients() {
                       cursor: 'pointer', boxShadow: '0 0 15px rgba(232,176,114,0.2)', transition: 'all 0.15s ease'
                     }}
                   >
-                    Ver Ficha Completa & Fidelización
+                    Ver Ficha Completa & Fidelização
                   </button>
                   {drawerPhone && (
                     <a
@@ -1122,7 +1122,7 @@ export default function Clients() {
                         textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
                       }}
                     >
-                      <MessageCircle size={15} style={{ color: '#25D366' }} /> Abrir Chat WhatsApp
+                      <MessageCircle size={15} style={{ color: '#25D366' }} /> Abrir Conversa WhatsApp
                     </a>
                   )}
                 </div>
@@ -1142,10 +1142,10 @@ export default function Clients() {
                 </div>
                 <div>
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#F8FAFC', display: 'block' }}>
-                    Programa de Referidos Atelier
+                    Programa de Recomendações Atelier
                   </span>
                   <span style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                    {selectedDrawer.nombre} forma parte de la red de fidelización VIP.
+                    {selectedDrawer.nombre} faz parte da rede de fidelização VIP.
                   </span>
                 </div>
               </div>
@@ -1154,15 +1154,15 @@ export default function Clients() {
           ) : (
             <div style={{ background: '#191b22', borderRadius: 14, padding: 30, textAlign: 'center', border: '1px solid #282f42' }}>
               <Users size={32} className="text-muted" style={{ margin: '0 auto 10px auto', opacity: 0.5 }} />
-              <div style={{ color: '#F8FAFC', fontWeight: 600 }}>Selecciona un cliente</div>
-              <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 4 }}>Haz clic en cualquier fila para ver su ficha rápida.</div>
+              <div style={{ color: '#F8FAFC', fontWeight: 600 }}>Seleciona um cliente</div>
+              <div style={{ color: '#64748B', fontSize: '0.82rem', marginTop: 4 }}>Clica em qualquer linha para ver a sua ficha rápida.</div>
             </div>
           )}
         </div>
 
       </div>
 
-      {/* Modal: Alta de Nuevo Cliente */}
+      {/* Modal: Registo de Novo Cliente */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: 540 }}>
@@ -1175,8 +1175,8 @@ export default function Clients() {
                   <Users size={20} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Alta de Nuevo Cliente</h3>
-                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748B' }}>Añade un perfil al atelier con seguimiento de reservas</p>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Registo de Novo Cliente</h3>
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748B' }}>Adiciona um perfil ao atelier com acompanhamento de marcações</p>
                 </div>
               </div>
               <button className="modal-close" onClick={() => setShowModal(false)}><XCircle size={20} /></button>
@@ -1184,12 +1184,12 @@ export default function Clients() {
             
             <div className="modal-body">
               <div className="form-group">
-                <label className="form-label">Nombre Completo *</label>
+                <label className="form-label">Nome Completo *</label>
                 <input
                   className="form-input"
                   value={newClient.nombre}
                   onChange={e => setNewClient({ ...newClient, nombre: e.target.value })}
-                  placeholder="Ej. Sofía Morales"
+                  placeholder="Ex: Sofia Morales"
                 />
               </div>
 
@@ -1215,7 +1215,7 @@ export default function Clients() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Correo Electrónico</label>
+                <label className="form-label">Email</label>
                 <input
                   className="form-input"
                   type="email"
@@ -1226,13 +1226,13 @@ export default function Clients() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Referido por</label>
+                <label className="form-label">Recomendado por</label>
                 <select
                   className="form-select"
                   value={newClient.referred_by_client_id}
                   onChange={e => setNewClient({ ...newClient, referred_by_client_id: e.target.value })}
                 >
-                  <option value="">Directo / Búsqueda Propia</option>
+                  <option value="">Direto / Pesquisa Própria</option>
                   {clients.map(c => (
                     <option key={c.id || c.id_cliente} value={c.id || c.id_cliente}>{c.nombre}</option>
                   ))}
@@ -1240,13 +1240,13 @@ export default function Clients() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Notas de Estilo o Preferencias</label>
+                <label className="form-label">Notas de Estilo ou Preferências</label>
                 <textarea
                   className="form-textarea"
                   rows={2}
                   value={newClient.notas_estilo_preferencias}
                   onChange={e => setNewClient({ ...newClient, notas_estilo_preferencias: e.target.value })}
-                  placeholder="Ej. Retrato editorial, luz natural cálida..."
+                  placeholder="Ex: Retrato editorial, luz natural quente..."
                 />
               </div>
             </div>
@@ -1259,7 +1259,7 @@ export default function Clients() {
                 disabled={creating || !newClient.nombre.trim()}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
-                <CheckCircle size={16} /> {creating ? 'Guardando...' : 'Guardar Cliente'}
+                <CheckCircle size={16} /> {creating ? 'A guardar...' : 'Guardar Cliente'}
               </button>
             </div>
           </div>

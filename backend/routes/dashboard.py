@@ -53,11 +53,11 @@ def get_opportunities():
                             "nombre": name,
                             "telefono": c.get('telefono'),
                             "email": c.get('email'),
-                            "motivo_recontacto": f"Aniversario en {days} días ({nxt.strftime('%d/%m')})",
+                            "motivo_recontacto": f"Aniversário em {days} dias ({nxt.strftime('%d/%m')})",
                             "fecha_opcion_recontacto": nxt.strftime('%Y-%m-%d'),
                             "dias_restantes": days,
                             "tipo": "aniversario",
-                            "whatsapp_pitch": f"¡Hola {first_name}! En Diogo Studio recordamos que pronto celebran su aniversario de pareja/boda. Nos encantaría capturar este nuevo capítulo con una sesión especial. Cuentas con un {descuento}% de descuento exclusivo. ¿Te gustaría coordinar fecha?"
+                            "whatsapp_pitch": f"Olá {first_name}! No Diogo Studio lembramo-nos de que em breve celebram o vosso aniversário de casamento/namoro. Adoraríamos registar este capítulo com uma sessão especial. Tens {descuento}% de desconto exclusivo. Gostarias de marcar uma data?"
                         })
                 except Exception:
                     pass
@@ -75,11 +75,11 @@ def get_opportunities():
                             "nombre": name,
                             "telefono": c.get('telefono'),
                             "email": c.get('email'),
-                            "motivo_recontacto": f"Cumpleaños / Hito en {days} días ({nxt.strftime('%d/%m')})",
+                            "motivo_recontacto": f"Aniversário / Marco em {days} dias ({nxt.strftime('%d/%m')})",
                             "fecha_opcion_recontacto": nxt.strftime('%Y-%m-%d'),
                             "dias_restantes": days,
                             "tipo": "cumpleanos",
-                            "whatsapp_pitch": f"¡Hola {first_name}! Esperamos que tú y tu familia estén muy bien. Vimos que se acerca el cumpleaños / fecha especial del peque y nos encantaría inmortalizarlo en una hermosa sesión de fotos. Tienes un {descuento}% de descuento. ¿Te gustaría apartar fecha?"
+                            "whatsapp_pitch": f"Olá {first_name}! Esperamos que a família esteja ótima. Vimos que se aproxima o aniversário / data especial e adoraríamos eternizar esse momento numa linda sessão de fotografia. Tens {descuento}% de desconto. Gostarias de reservar a data?"
                         })
                 except Exception:
                     pass
@@ -96,11 +96,11 @@ def get_opportunities():
                             "nombre": name,
                             "telefono": c.get('telefono'),
                             "email": c.get('email'),
-                            "motivo_recontacto": f"Inactivo ({diff_days} días sin sesión)",
+                            "motivo_recontacto": f"Inativo ({diff_days} dias sem sessão)",
                             "fecha_opcion_recontacto": ref_date_str,
                             "dias_restantes": diff_days,
                             "tipo": "inactividad",
-                            "whatsapp_pitch": f"¡Hola {first_name}! Te saludamos del equipo de Diogo Studio. Hace tiempo que no actualizamos tus fotos y tenemos nuevas propuestas y paquetes de temporada. Nos encantaría verte de vuelta con un {descuento}% de descuento de bienvenida. ¿Agendamos?"
+                            "whatsapp_pitch": f"Olá {first_name}! Falamos da equipa do Diogo Studio. Há algum tempo que não atualizamos os teus retratos e temos novas propostas e pacotes de época. Adoraríamos receber-te de volta com {descuento}% de desconto de boas-vindas. Agendamos uma data?"
                         })
                 except Exception:
                     pass
