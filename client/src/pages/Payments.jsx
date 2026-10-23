@@ -3,9 +3,10 @@ import {
   Euro, Save, XCircle, CreditCard, ChevronRight, Download, Plus, 
   TrendingUp, Clock, Receipt, CheckCircle, Hourglass, 
   Search, Send, FileText, ShieldCheck, Camera, Image as ImageIcon,
-  Wallet, Layers, ArrowUpRight, DollarSign
+  Wallet, Layers, ArrowUpRight, DollarSign, Sparkles, Smartphone
 } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
+import { formatWhatsAppUrl } from '../utils/whatsapp'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 const fmtDate = d => {
@@ -33,8 +34,13 @@ export default function Payments() {
   // Modal registrar abono
   const [showAbonoModal, setShowAbonoModal] = useState(false)
   const [abonoAmount, setAbonoAmount] = useState('')
-  const [abonoMethod, setAbonoMethod] = useState('Transferencia Bancaria Inmediata')
+  const [abonoMethod, setAbonoMethod] = useState('Bizum')
   const [abonoNotes, setAbonoNotes] = useState('')
+
+  // Modal extras / upsell
+  const [showExtraModal, setShowExtraModal] = useState(false)
+  const [extraAmount, setExtraAmount] = useState('')
+  const [extraConcept, setExtraConcept] = useState('5 Fotos Retocadas Adicionales')
 
   const editRef = useRef(null)
 
@@ -130,7 +136,9 @@ export default function Payments() {
           body: JSON.stringify({
             anticipo_pagado: nuevoAnticipo,
             estado_pago: nuevoEstado,
-            fecha_ultimo_pago: new Date().toISOString().split('T')[0]
+            fecha_ultimo_pago: new Date().toISOString().split('T')[0],
+            metodo_pago: abonoMethod,
+            notas_pago: abonoNotes
           })
         })
       } else {
@@ -143,7 +151,9 @@ export default function Payments() {
             descuento_aplicado: desc,
             anticipo_pagado: nuevoAnticipo,
             estado_pago: nuevoEstado,
-            fecha_ultimo_pago: new Date().toISOString().split('T')[0]
+            fecha_ultimo_pago: new Date().toISOString().split('T')[0],
+            metodo_pago: abonoMethod,
+            notas_pago: abonoNotes
           })
         })
       }
@@ -156,7 +166,82 @@ export default function Payments() {
       await fetchBookings()
       setShowAbonoModal(false)
       setAbonoAmount('')
+      setAbonoNotes('')
       setSuccessMsg(`Abono de ${fmt(amountVal)} registrado con éxito para ${selected.nombre_cliente || selected.cliente_nombre}`)
+      setTimeout(() => setSuccessMsg(null), 3500)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Manejador para agregar extra / fotos adicionales
+  const handleExtraSubmit = async () => {
+    if (!selected || !extraAmount) return
+    const extraVal = parseFloat(extraAmount)
+    if (isNaN(extraVal) || extraVal <= 0) {
+      setError('Por favor ingrese un monto válido para el extra.')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    try {
+      const bId = selected.id_reserva || selected.id
+      const currentBruto = parseFloat(selected.monto_bruto || 0)
+      const nuevoBruto = currentBruto + extraVal
+      const currentAnticipo = parseFloat(selected.anticipo_pagado || selected.anticipo || 0)
+      const desc = parseFloat(selected.descuento_aplicado || selected.descuento || 0)
+      const nuevoSaldo = Math.max(0, nuevoBruto - desc - currentAnticipo)
+
+      let nuevoEstado = 'Pendiente'
+      if (nuevoSaldo <= 0) nuevoEstado = 'Completado'
+      else if (currentAnticipo > 0) nuevoEstado = 'Parcial'
+
+      const notaExtra = extraConcept.trim() 
+        ? `Extra: ${extraConcept.trim()} (+${fmt(extraVal)})`
+        : `Extra agregado (+${fmt(extraVal)})`
+      const currentNotas = selected.notas_pago || ''
+      const nuevasNotas = currentNotas ? `${currentNotas} | ${notaExtra}` : notaExtra
+
+      const paymentId = selected.payment_id
+      let res
+      if (paymentId) {
+        res = await fetch(`/api/payments/${paymentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            monto_bruto: nuevoBruto,
+            estado_pago: nuevoEstado,
+            notas_pago: nuevasNotas
+          })
+        })
+      } else {
+        res = await fetch('/api/payments/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            booking_id: bId,
+            monto_bruto: nuevoBruto,
+            descuento_aplicado: desc,
+            anticipo_pagado: currentAnticipo,
+            estado_pago: nuevoEstado,
+            notas_pago: nuevasNotas
+          })
+        })
+      }
+
+      if (!res.ok) {
+        const errJson = await res.json()
+        throw new Error(errJson.error || 'Error al añadir extra')
+      }
+
+      await fetchBookings()
+      setShowExtraModal(false)
+      setExtraAmount('')
+      setExtraConcept('5 Fotos Retocadas Adicionales')
+      setSuccessMsg(`Extra de ${fmt(extraVal)} añadido exitosamente al presupuesto`)
       setTimeout(() => setSuccessMsg(null), 3500)
     } catch (e) {
       setError(e.message)
@@ -167,7 +252,7 @@ export default function Payments() {
 
   const exportCSV = () => {
     if (bookings.length === 0) return
-    const headers = ['Ref Liquidacion', 'Cliente', 'WhatsApp', 'Servicio', 'Fecha Sesion', 'Total Presupuestado', 'Anticipo Recibido', 'Saldo Exigible', 'Estado']
+    const headers = ['Ref Liquidacion', 'Cliente', 'WhatsApp', 'Servicio', 'Fecha Sesion', 'Total Presupuestado', 'Anticipo Recibido', 'Saldo Exigible', 'Estado', 'Metodo Pago']
     const rows = bookings.map(b => {
       const bruto = parseFloat(b.monto_bruto) || 0
       const desc = parseFloat(b.descuento_aplicado || b.descuento) || 0
@@ -182,7 +267,8 @@ export default function Payments() {
         bruto,
         anti,
         saldo,
-        b.estado_pago || 'Pendiente'
+        b.estado_pago || 'Pendiente',
+        `"${b.metodo_pago || 'Transferencia Bancaria'}"`
       ]
     })
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n')
@@ -197,14 +283,13 @@ export default function Payments() {
 
   const getWhatsAppReminderUrl = (b) => {
     if (!b) return null
-    const phone = (b.telefono_cliente || b.cliente_telefono || '').replace(/\D/g, '')
     const clientName = (b.nombre_cliente || b.cliente_nombre || 'Estimado/a').split(' ')[0]
     const bruto = parseFloat(b.monto_bruto) || 0
     const desc = parseFloat(b.descuento_aplicado || b.descuento) || 0
     const anti = parseFloat(b.anticipo_pagado || b.anticipo) || 0
     const saldo = Math.max(0, bruto - desc - anti)
-    const msg = encodeURIComponent(`¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio amistoso sobre el balance pendiente de ${fmt(saldo)} para tu próxima sesión (${b.nombre_servicio || b.servicio_nombre}). ¿Deseas que te enviemos el enlace de pago seguro? 💳`)
-    return phone ? `https://wa.me/${phone}?text=${msg}` : null
+    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio amistoso sobre el balance pendiente de ${fmt(saldo)} para tu próxima sesión (${b.nombre_servicio || b.servicio_nombre}). ¿Deseas que te facilitemos las opciones de pago (Bizum/Transferencia/Tarjeta)? 💳`
+    return formatWhatsAppUrl(b.telefono_cliente || b.cliente_telefono, msg)
   }
 
   if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
@@ -721,16 +806,34 @@ export default function Payments() {
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <CreditCard size={12} style={{ color: '#F5B955' }} /> Stripe / Visa
+                      <Smartphone size={12} style={{ color: '#00D4B2' }} /> Bizum
+                    </span>
+                    <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <CreditCard size={12} style={{ color: '#F5B955' }} /> Stripe / Tarjeta
                     </span>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Wallet size={12} style={{ color: '#F5B955' }} /> Wire SEPA
                     </span>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Euro size={12} style={{ color: '#F5B955' }} /> Efectivo Estudio
+                      <Euro size={12} style={{ color: '#F5B955' }} /> Efectivo
                     </span>
                   </div>
                 </div>
+
+                {/* Último Método y Notas de Pago */}
+                {(activeBooking.metodo_pago || activeBooking.notas_pago) && (
+                  <div style={{ background: '#0c0e14', padding: 12, borderRadius: 8, border: '1px solid #282f42', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#64748B', fontWeight: 600 }}>Último Método</span>
+                      <span style={{ fontSize: '0.78rem', color: '#F5B955', fontWeight: 600 }}>{activeBooking.metodo_pago || 'Transferencia Bancaria'}</span>
+                    </div>
+                    {activeBooking.notas_pago && (
+                      <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: 2, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 4 }}>
+                        <span style={{ color: '#64748B' }}>Historial / Notas: </span>{activeBooking.notas_pago}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Quick Interaction Buttons */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
@@ -747,6 +850,21 @@ export default function Payments() {
                     }}
                   >
                     <CreditCard size={16} /> Registrar Pago / Abono (€)
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setExtraAmount('')
+                      setShowExtraModal(true)
+                    }}
+                    style={{
+                      width: '100%', padding: '9px 0', background: '#1e1f26', color: '#F5B955',
+                      border: '1px solid rgba(245, 185, 85, 0.3)', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Plus size={16} /> + Añadir Extra / Upsell (Fotos/Álbum)
                   </button>
 
                   {getWhatsAppReminderUrl(activeBooking) && (
@@ -834,10 +952,11 @@ export default function Payments() {
                   value={abonoMethod}
                   onChange={e => setAbonoMethod(e.target.value)}
                 >
-                  <option value="Transferencia Bancaria Inmediata">Transferencia Bancaria Inmediata</option>
-                  <option value="Terminal POS / Tarjeta en Estudio">Terminal POS / Tarjeta en Estudio</option>
-                  <option value="Efectivo en Recepción">Efectivo en Recepción</option>
-                  <option value="Stripe Link">Stripe Link</option>
+                  <option value="Bizum">Bizum Inmediato</option>
+                  <option value="Transferencia Bancaria">Transferencia Bancaria (IBAN)</option>
+                  <option value="Tarjeta / TPV Estudio">Tarjeta / TPV en Estudio</option>
+                  <option value="Efectivo en Estudio">Efectivo en Estudio</option>
+                  <option value="Stripe Link / Online">Stripe Link / Pasarela Online</option>
                 </select>
               </div>
 
@@ -848,7 +967,7 @@ export default function Payments() {
                   className="form-input"
                   value={abonoNotes}
                   onChange={e => setAbonoNotes(e.target.value)}
-                  placeholder="Ej: Comprobante #98231..."
+                  placeholder="Ej: Ref #98231 o abono inicial..."
                 />
               </div>
             </div>
@@ -862,6 +981,102 @@ export default function Payments() {
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <CheckCircle size={16} /> {saving ? 'Guardando...' : 'Confirmar Abono'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Añadir Extra / Upsell a Presupuesto */}
+      {showExtraModal && activeBooking && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 460 }}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={20} className="text-accent" />
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#F8FAFC' }}>Añadir Extra / Upsell</h3>
+              </div>
+              <button className="modal-close" onClick={() => setShowExtraModal(false)}><XCircle size={20} /></button>
+            </div>
+            
+            <div className="modal-body">
+              <p style={{ margin: '0 0 14px 0', fontSize: '0.85rem', color: '#94A3B8' }}>
+                Incrementa el presupuesto de <strong style={{ color: '#F8FAFC' }}>{activeBooking.nombre_cliente || activeBooking.cliente_nombre}</strong> por conceptos adicionales (fotos extra, impresiones, álbumes).
+              </p>
+
+              {/* Botones de selección rápida */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => { setExtraAmount('50'); setExtraConcept('5 Fotos Retocadas Adicionales') }}
+                  style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
+                >
+                  +5 Fotos (50 €)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setExtraAmount('90'); setExtraConcept('10 Fotos Retocadas Adicionales') }}
+                  style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
+                >
+                  +10 Fotos (90 €)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setExtraAmount('150'); setExtraConcept('Álbum Impreso Fine Art 30x30') }}
+                  style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
+                >
+                  +Álbum Fine Art (150 €)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setExtraAmount('80'); setExtraConcept('Servicio Maquillaje & Peluquería') }}
+                  style={{ padding: '4px 8px', borderRadius: 6, background: '#282a30', color: '#e8b072', border: '1px solid #3b4257', fontSize: '0.75rem', cursor: 'pointer' }}
+                >
+                  +Maquillaje (80 €)
+                </button>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Monto Adicional (€) *</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#F5B955', fontWeight: 700 }}>€</span>
+                  <input
+                    type="number"
+                    step="any"
+                    className="form-input"
+                    value={extraAmount}
+                    onChange={e => setExtraAmount(e.target.value)}
+                    placeholder="50.00"
+                    style={{ paddingLeft: 30, fontSize: '1.1rem', fontWeight: 700 }}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Concepto del Extra *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={extraConcept}
+                  onChange={e => setExtraConcept(e.target.value)}
+                  placeholder="Ej: 5 Fotos Retocadas Adicionales..."
+                />
+              </div>
+
+              <div style={{ padding: 10, borderRadius: 8, background: '#0c0e14', border: '1px solid #282f42', fontSize: '0.8rem', color: '#94A3B8' }}>
+                Total actual: <strong style={{ color: '#F8FAFC' }}>{fmt(activeBruto)}</strong> → Nuevo total: <strong style={{ color: '#F5B955' }}>{fmt(activeBruto + (parseFloat(extraAmount) || 0))}</strong>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowExtraModal(false)}>Cancelar</button>
+              <button
+                className="btn-primary"
+                onClick={handleExtraSubmit}
+                disabled={saving || !extraAmount}
+                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <CheckCircle size={16} /> {saving ? 'Guardando...' : 'Añadir al Presupuesto'}
               </button>
             </div>
           </div>

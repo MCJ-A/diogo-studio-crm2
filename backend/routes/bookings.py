@@ -3,7 +3,6 @@ from database import get_db
 
 bookings_bp = Blueprint('bookings', __name__)
 
-# Orden válido de transición de estados
 ESTADO_ORDER = ['Agendada', 'Realizada', 'Seleccion_pendiente', 'En_edicion', 'Entregada']
 
 def estado_index(estado):
@@ -40,6 +39,12 @@ def format_booking(row):
     d['servicio_nombre'] = s_name
     d['nombre_servicio'] = s_name
 
+    d['hora_sesion'] = d.get('hora_sesion') or ''
+    d['notas_internas'] = d.get('notas_internas') or ''
+    d['razon_cancelacion'] = d.get('razon_cancelacion') or ''
+    d['autoriza_redes_sociales'] = bool(d.get('autoriza_redes_sociales', 0))
+    d['contrato_firmado'] = bool(d.get('contrato_firmado', 0))
+
     return d
 
 @bookings_bp.route('/')
@@ -48,6 +53,7 @@ def get_bookings():
         db = get_db()
         rows = db.execute("""
             SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   c.notas_estilo_preferencias AS cliente_notas_estilo,
                    s.nombre AS servicio_nombre,
                    p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
@@ -56,12 +62,14 @@ def get_bookings():
                    p.motivo_descuento,
                    COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
                    COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
+                   COALESCE(p.metodo_pago, 'Transferencia Bancaria') AS metodo_pago,
+                   p.notas_pago,
                    p.fecha_ultimo_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id
             LEFT JOIN payments p ON p.booking_id = b.id
-            ORDER BY b.fecha_sesion DESC
+            ORDER BY b.fecha_sesion DESC, b.hora_sesion DESC
         """).fetchall()
         db.close()
         return jsonify([format_booking(r) for r in rows])
@@ -74,6 +82,7 @@ def get_booking(id):
         db = get_db()
         booking = db.execute("""
             SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   c.notas_estilo_preferencias AS cliente_notas_estilo,
                    s.nombre AS servicio_nombre,
                    p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
@@ -82,6 +91,8 @@ def get_booking(id):
                    p.motivo_descuento,
                    COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
                    COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
+                   COALESCE(p.metodo_pago, 'Transferencia Bancaria') AS metodo_pago,
+                   p.notas_pago,
                    p.fecha_ultimo_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
@@ -107,40 +118,78 @@ def get_booking(id):
 def create_booking():
     try:
         data = request.get_json() or {}
+        db = get_db()
+
+        # Soporte para creación rápida de cliente inline
         client_id = data.get('client_id') or data.get('id_cliente')
+        nuevo_cliente = data.get('nuevo_cliente')
+        if not client_id and nuevo_cliente and nuevo_cliente.get('nombre'):
+            c_nom = nuevo_cliente.get('nombre', '').strip()
+            c_tel = nuevo_cliente.get('telefono', '').strip() or None
+            c_mail = nuevo_cliente.get('email', '').strip() or None
+            c_cur = db.execute("""
+                INSERT INTO clients (nombre, telefono, email, fecha_registro)
+                VALUES (?, ?, ?, date('now'))
+            """, (c_nom, c_tel, c_mail))
+            db.commit()
+            client_id = c_cur.lastrowid
+
         service_id = data.get('service_id') or data.get('id_servicio')
         fecha_sesion = data.get('fecha_sesion')
 
         if not client_id or not service_id or not fecha_sesion:
+            db.close()
             return jsonify({"error": "Campos requeridos: cliente, servicio y fecha_sesion"}), 400
 
-        db = get_db()
+        hora_sesion = data.get('hora_sesion') or ''
+        notas_internas = data.get('notas_internas') or ''
+
         cur = db.execute("""
-            INSERT INTO bookings (client_id, service_id, fecha_sesion, ubicacion,
-                contrato_firmado, autoriza_redes_sociales, estado)
-            VALUES (?, ?, ?, ?, ?, ?, 'Agendada')
+            INSERT INTO bookings (client_id, service_id, fecha_sesion, hora_sesion, ubicacion,
+                contrato_firmado, autoriza_redes_sociales, notas_internas, estado)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Agendada')
         """, (
-            client_id, service_id, fecha_sesion,
+            client_id, service_id, fecha_sesion, hora_sesion,
             data.get('ubicacion'),
             1 if data.get('contrato_firmado') else 0,
-            1 if data.get('autoriza_redes_sociales') else 0
+            1 if data.get('autoriza_redes_sociales') else 0,
+            notas_internas
         ))
         db.commit()
         new_id = cur.lastrowid
 
-        # Crear automáticamente el registro inicial de pago si no existe
+        # Crear automáticamente el registro inicial de pago con detección de descuento VIP
         serv = db.execute("SELECT precio_base FROM services WHERE id = ?", (service_id,)).fetchone()
         if serv:
+            precio_base = float(serv['precio_base'])
+            
+            # Checar si hay descuento manual o descuento VIP automático de v_client_loyalty
+            desc_val = float(data.get('descuento_aplicado', 0) or 0)
+            motivo_desc = data.get('motivo_descuento') or ''
+            
+            if desc_val == 0:
+                loyalty = db.execute("SELECT descuento_sugerido_pct FROM v_client_loyalty WHERE id = ?", (client_id,)).fetchone()
+                if loyalty and loyalty['descuento_sugerido_pct'] > 0:
+                    pct = float(loyalty['descuento_sugerido_pct'])
+                    desc_val = round(precio_base * (pct / 100.0), 2)
+                    motivo_desc = f"Beneficio VIP ({int(pct)}% lealtad)"
+
             db.execute("""
-                INSERT INTO payments (booking_id, monto_bruto, descuento_aplicado, anticipo_pagado, estado_pago)
-                VALUES (?, ?, 0, 0, 'Pendiente')
-            """, (new_id, serv['precio_base']))
+                INSERT INTO payments (booking_id, monto_bruto, descuento_aplicado, motivo_descuento, anticipo_pagado, estado_pago)
+                VALUES (?, ?, ?, ?, 0, 'Pendiente')
+            """, (new_id, precio_base, desc_val, motivo_desc))
             db.commit()
 
         row = db.execute("""
-            SELECT b.*, c.nombre AS cliente_nombre, s.nombre AS servicio_nombre,
+            SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   c.notas_estilo_preferencias AS cliente_notas_estilo,
+                   s.nombre AS servicio_nombre,
+                   p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
-                   p.saldo_pendiente, p.estado_pago
+                   COALESCE(p.anticipo_pagado, 0) AS anticipo_pagado,
+                   COALESCE(p.descuento_aplicado, 0) AS descuento_aplicado,
+                   p.motivo_descuento,
+                   p.saldo_pendiente, p.estado_pago, p.metodo_pago, p.notas_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id
@@ -170,21 +219,30 @@ def update_booking(id):
                 client_id = COALESCE(?, client_id),
                 service_id = COALESCE(?, service_id),
                 fecha_sesion = COALESCE(?, fecha_sesion),
+                hora_sesion = COALESCE(?, hora_sesion),
                 ubicacion = COALESCE(?, ubicacion),
                 contrato_firmado = COALESCE(?, contrato_firmado),
                 autoriza_redes_sociales = COALESCE(?, autoriza_redes_sociales),
-                url_galeria = COALESCE(?, url_galeria)
+                url_galeria = COALESCE(?, url_galeria),
+                notas_internas = COALESCE(?, notas_internas)
             WHERE id = ?
         """, (
             client_id, service_id, data.get('fecha_sesion'),
-            data.get('ubicacion'), data.get('contrato_firmado'),
-            data.get('autoriza_redes_sociales'), data.get('url_galeria'), id
+            data.get('hora_sesion'), data.get('ubicacion'),
+            data.get('contrato_firmado'), data.get('autoriza_redes_sociales'),
+            data.get('url_galeria'), data.get('notas_internas'), id
         ))
         db.commit()
         row = db.execute("""
-            SELECT b.*, c.nombre AS cliente_nombre, s.nombre AS servicio_nombre,
+            SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   c.notas_estilo_preferencias AS cliente_notas_estilo,
+                   s.nombre AS servicio_nombre,
+                   p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
-                   p.saldo_pendiente, p.estado_pago
+                   COALESCE(p.anticipo_pagado, 0) AS anticipo_pagado,
+                   COALESCE(p.descuento_aplicado, 0) AS descuento_aplicado,
+                   p.motivo_descuento,
+                   p.saldo_pendiente, p.estado_pago, p.metodo_pago, p.notas_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id
@@ -213,7 +271,7 @@ def change_status(id):
 
         current = booking['estado']
 
-        # Validar: no puede saltar de Agendada a Entregada
+        # Validar: no puede saltar de Agendada a Entregada directamente
         if current == 'Agendada' and new_status == 'Entregada':
             db.close()
             return jsonify({"error": "No se puede pasar de 'Agendada' directamente a 'Entregada'. Debe pasar por los estados intermedios."}), 400
@@ -233,19 +291,29 @@ def change_status(id):
                 db.close()
                 return jsonify({"error": f"No se puede marcar como 'Entregada': hay saldo pendiente de €{payment['saldo_pendiente']:.2f}"}), 400
 
-        # Cancelada requiere razon_cancelacion o motivo_cancelacion
+        # Cancelada requiere motivo_cancelacion / razon_cancelacion
+        reason = None
         if new_status == 'Cancelada':
             reason = data.get('razon_cancelacion') or data.get('motivo_cancelacion')
             if not reason:
                 db.close()
-                return jsonify({"error": "Se requiere el motivo de cancelación para cancelar un booking."}), 400
+                return jsonify({"error": "Se requiere el motivo de cancelación para cancelar una reserva."}), 400
 
-        db.execute("UPDATE bookings SET estado = ? WHERE id = ?", (new_status, id))
+        db.execute("""
+            UPDATE bookings SET 
+                estado = ?,
+                razon_cancelacion = COALESCE(?, razon_cancelacion)
+            WHERE id = ?
+        """, (new_status, reason, id))
         db.commit()
+
         row = db.execute("""
-            SELECT b.*, c.nombre AS cliente_nombre, s.nombre AS servicio_nombre,
+            SELECT b.*, c.nombre AS cliente_nombre, c.telefono AS cliente_telefono, c.email AS cliente_email,
+                   c.notas_estilo_preferencias AS cliente_notas_estilo,
+                   s.nombre AS servicio_nombre,
+                   p.id AS payment_id,
                    COALESCE(p.monto_bruto, s.precio_base) AS monto_bruto,
-                   p.saldo_pendiente, p.estado_pago
+                   p.saldo_pendiente, p.estado_pago, p.metodo_pago
             FROM bookings b
             JOIN clients c ON b.client_id = c.id
             JOIN services s ON b.service_id = s.id

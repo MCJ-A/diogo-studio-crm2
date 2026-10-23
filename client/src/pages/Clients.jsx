@@ -7,6 +7,7 @@ import {
   Download, Send, Share2, Eye
 } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
+import { normalizePhone, formatWhatsAppUrl } from '../utils/whatsapp'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v || 0)
 const fmtDate = d => {
@@ -232,7 +233,7 @@ export default function Clients() {
   // =======================================================
   if (selected) {
     const tier = getLoyaltyTier(loyalty?.descuento_sugerido_pct || selected?.descuento_sugerido_pct || 0)
-    const phone = (selected.telefono || '').replace(/\D/g, '')
+    const phone = normalizePhone(selected.telefono)
     const firstName = (selected.nombre || 'cliente').split(' ')[0]
     const defaultPitch = `¡Hola ${firstName}! ✨ Te saludamos con mucho cariño desde Diogo Studio. Queremos recordarte que como cliente VIP nivel ${tier.label}, cuentas con un ${tier.pct}% de beneficio exclusivo para tu próxima sesión fotográfica. ¿Te gustaría agendar una fecha especial? 📸`
 
@@ -571,7 +572,7 @@ export default function Clients() {
   // VISTA PRINCIPAL: DIRECTORIO Y DRAWER HAUTE ATELIER
   // =======================================================
   const activeDrawerTier = selectedDrawer ? getLoyaltyTier(selectedDrawer.descuento_sugerido_pct || 0) : null
-  const drawerPhone = selectedDrawer?.telefono ? selectedDrawer.telefono.replace(/\D/g, '') : ''
+  const drawerPhone = normalizePhone(selectedDrawer?.telefono)
 
   return (
     <div className="clients-page" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -790,7 +791,7 @@ export default function Clients() {
                     <tbody>
                       {filteredClients.map(c => {
                         const isSelected = selectedDrawer && (selectedDrawer.id || selectedDrawer.id_cliente) === (c.id || c.id_cliente)
-                        const phone = (c.telefono || '').replace(/\D/g, '')
+                        const phone = normalizePhone(c.telefono)
                         const tier = getLoyaltyTier(c.descuento_sugerido_pct || 0)
 
                         return (
@@ -925,7 +926,7 @@ export default function Clients() {
                 <div className="mobile-only client-cards-list" style={{ padding: 12 }}>
                   {filteredClients.map(c => {
                     const isSelected = selectedDrawer && (selectedDrawer.id || selectedDrawer.id_cliente) === (c.id || c.id_cliente)
-                    const phone = (c.telefono || '').replace(/\D/g, '')
+                    const phone = normalizePhone(c.telefono)
                     const tier = getLoyaltyTier(c.descuento_sugerido_pct || 0)
 
                     return (

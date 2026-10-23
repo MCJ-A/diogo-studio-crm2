@@ -1,4 +1,4 @@
-﻿from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request
 from database import get_db
 
 payments_bp = Blueprint('payments', __name__)
@@ -34,8 +34,9 @@ def create_payment():
         # saldo_pendiente es columna generada, NO se inserta
         cur = db.execute("""
             INSERT INTO payments (booking_id, monto_bruto, descuento_aplicado,
-                motivo_descuento, anticipo_pagado, estado_pago, fecha_ultimo_pago)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+                motivo_descuento, anticipo_pagado, estado_pago, fecha_ultimo_pago,
+                metodo_pago, notas_pago)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             data['booking_id'],
             data['monto_bruto'],
@@ -43,7 +44,9 @@ def create_payment():
             data.get('motivo_descuento'),
             data.get('anticipo_pagado', 0),
             data.get('estado_pago', 'Pendiente'),
-            data.get('fecha_ultimo_pago')
+            data.get('fecha_ultimo_pago'),
+            data.get('metodo_pago', 'Transferencia Bancaria'),
+            data.get('notas_pago')
         ))
         db.commit()
         row = db.execute(
@@ -73,12 +76,16 @@ def update_payment(id):
                 motivo_descuento = COALESCE(?, motivo_descuento),
                 anticipo_pagado = COALESCE(?, anticipo_pagado),
                 estado_pago = COALESCE(?, estado_pago),
-                fecha_ultimo_pago = COALESCE(?, fecha_ultimo_pago)
+                fecha_ultimo_pago = COALESCE(?, fecha_ultimo_pago),
+                metodo_pago = COALESCE(?, metodo_pago),
+                notas_pago = COALESCE(?, notas_pago)
             WHERE id = ?
         """, (
             data.get('monto_bruto'), data.get('descuento_aplicado'),
             data.get('motivo_descuento'), data.get('anticipo_pagado'),
-            data.get('estado_pago'), data.get('fecha_ultimo_pago'), id
+            data.get('estado_pago'), data.get('fecha_ultimo_pago'),
+            data.get('metodo_pago'), data.get('notas_pago'),
+            id
         ))
         db.commit()
         row = db.execute("SELECT * FROM payments WHERE id = ?", (id,)).fetchone()

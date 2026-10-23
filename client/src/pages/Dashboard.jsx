@@ -6,6 +6,7 @@ import {
   ChevronRight, ExternalLink, Camera, Clock, Trophy, Award, Medal, CheckCircle2,
   FileSignature, Target, Send, ArrowRight
 } from 'lucide-react'
+import { formatWhatsAppUrl } from '../utils/whatsapp'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 
@@ -345,8 +346,8 @@ export default function Dashboard() {
             {/* Contact Cards List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {(filteredOpportunities.length > 0 ? filteredOpportunities : opportunities).slice(0, 4).map((o, idx) => {
-                const phone = (o.telefono || '555-0101').replace(/\D/g, '')
                 const pitch = o.whatsapp_pitch || `¡Hola ${o.nombre}! Te saludamos del atelier Diogo Studio...`
+                const waUrl = formatWhatsAppUrl(o.telefono, pitch) || `https://wa.me/?text=${encodeURIComponent(pitch)}`
                 const initials = getInitials(o.nombre || (idx === 0 ? 'María González' : (idx === 1 ? 'Ana Martínez' : 'Carlos Rodríguez')))
                 const tier = idx === 0 ? 'VIP' : (idx === 1 ? 'Studio' : 'Comercial')
                 const reason = o.motivo_recontacto || (idx === 0 ? 'Inactivo: 760 días • Boda 2023' : (idx === 1 ? 'Inactivo: 830 días • Headshots' : 'Inactivo: 837 días • Campaña Moda'))
@@ -380,7 +381,7 @@ export default function Dashboard() {
                     </div>
 
                     <a 
-                      href={`https://wa.me/${phone}?text=${encodeURIComponent(pitch)}`} 
+                      href={waUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="btn-whatsapp-luxury"

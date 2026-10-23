@@ -1,5 +1,6 @@
 import { Target, Calendar, MessageCircle, Heart, Cake, Clock, ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { formatWhatsAppUrl } from '../utils/whatsapp'
 
 const fmtDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—'
 
@@ -24,8 +25,8 @@ function OpportunityWidget({ opportunities = [] }) {
       </div>
       <div className="widget-list">
         {opportunities.map((o, i) => {
-          const phone = (o.telefono || '').replace(/\D/g, '')
           const pitch = o.whatsapp_pitch || `¡Hola ${o.nombre}! Te saludamos de Diogo Studio...`
+          const waUrl = formatWhatsAppUrl(o.telefono, pitch)
           const isAniv = o.tipo === 'aniversario'
           const isBday = o.tipo === 'cumpleanos'
 
@@ -60,9 +61,9 @@ function OpportunityWidget({ opportunities = [] }) {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                {phone && (
+                {waUrl && (
                   <a 
-                    href={`https://wa.me/${phone}?text=${encodeURIComponent(pitch)}`} 
+                    href={waUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn-primary btn-sm"

@@ -107,7 +107,10 @@ def get_clients():
         rows = db.execute("""
             SELECT c.*, 
                    ref.nombre AS referred_by_name,
-                   l.descuento_sugerido_pct
+                   COALESCE(l.descuento_sugerido_pct, 0) AS descuento_sugerido_pct,
+                   COALESCE(l.total_gastado, 0) AS total_gastado,
+                   COALESCE(l.sesiones_completadas, 0) AS sesiones_completadas,
+                   COALESCE(l.total_referidos, 0) AS total_referidos
             FROM clients c
             LEFT JOIN clients ref ON c.referred_by_client_id = ref.id
             LEFT JOIN v_client_loyalty l ON c.id = l.id

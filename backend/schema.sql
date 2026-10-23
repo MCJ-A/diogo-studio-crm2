@@ -37,11 +37,14 @@ CREATE TABLE bookings (
     client_id INTEGER NOT NULL,
     service_id INTEGER NOT NULL,
     fecha_sesion DATE NOT NULL,
+    hora_sesion TEXT,
     ubicacion TEXT,
     estado TEXT CHECK (estado IN ('Agendada', 'Realizada', 'Seleccion_pendiente', 'En_edicion', 'Entregada', 'Cancelada')),
     contrato_firmado BOOLEAN DEFAULT 0,
     autoriza_redes_sociales BOOLEAN DEFAULT 0,
     url_galeria TEXT,
+    notas_internas TEXT,
+    razon_cancelacion TEXT,
     FOREIGN KEY (client_id) REFERENCES clients(id),
     FOREIGN KEY (service_id) REFERENCES services(id)
 );
@@ -56,6 +59,8 @@ CREATE TABLE payments (
     anticipo_pagado REAL DEFAULT 0,
     saldo_pendiente GENERATED ALWAYS AS (monto_bruto - descuento_aplicado - anticipo_pagado) STORED,
     estado_pago TEXT CHECK (estado_pago IN ('Pendiente', 'Parcial', 'Completado')),
+    metodo_pago TEXT DEFAULT 'Transferencia Bancaria',
+    notas_pago TEXT,
     fecha_ultimo_pago DATE,
     FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
@@ -65,21 +70,21 @@ CREATE VIEW v_client_loyalty AS
 SELECT 
     c.id,
     c.nombre,
-    COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) AS sesiones_completadas,
+    COUNT(CASE WHEN b.estado IN ('Realizada', 'Entregada') THEN 1 END) AS sesiones_completadas,
     COALESCE(SUM(CASE WHEN b.estado IN ('Realizada','Entregada') THEN p.monto_bruto - COALESCE(p.descuento_aplicado,0) ELSE 0 END), 0) AS total_gastado,
-    MAX(b.fecha_sesion) AS fecha_ultima_sesion,
-    COUNT(DISTINCT c.referred_by_client_id) AS total_referidos,
+    MAX(CASE WHEN b.estado IN ('Realizada','Entregada') THEN b.fecha_sesion END) AS fecha_ultima_sesion,
+    (SELECT COUNT(*) FROM clients r WHERE r.referred_by_client_id = c.id) AS total_referidos,
     CASE 
-        WHEN COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) >= 4 AND COUNT(DISTINCT c.referred_by_client_id) > 0 THEN 20
-        WHEN COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) BETWEEN 2 AND 3 THEN 15
-        WHEN COUNT(CASE WHEN b.estado = 'Realizada' THEN 1 END) >= 4 THEN 15
+        WHEN COUNT(CASE WHEN b.estado IN ('Realizada', 'Entregada') THEN 1 END) >= 3 AND (SELECT COUNT(*) FROM clients r WHERE r.referred_by_client_id = c.id) > 0 THEN 20
+        WHEN COUNT(CASE WHEN b.estado IN ('Realizada', 'Entregada') THEN 1 END) >= 4 THEN 20
+        WHEN COUNT(CASE WHEN b.estado IN ('Realizada', 'Entregada') THEN 1 END) BETWEEN 2 AND 3 THEN 15
+        WHEN (SELECT COUNT(*) FROM clients r WHERE r.referred_by_client_id = c.id) > 0 THEN 15
         ELSE 0
     END AS descuento_sugerido_pct
 FROM clients c
 LEFT JOIN bookings b ON c.id = b.client_id
 LEFT JOIN payments p ON b.id = p.booking_id
 GROUP BY c.id, c.nombre;
-
 
 -- Vista de oportunidades de recontacto
 CREATE VIEW v_oportunidades_recontacto AS
@@ -116,8 +121,9 @@ SELECT
     b.fecha_sesion,
     b.estado,
     CASE 
-        WHEN b.estado = 'Entregada' AND p.saldo_pendiente > 0 THEN 'Saldo pendiente en entrega'
         WHEN b.estado = 'Agendada' AND b.contrato_firmado = 0 THEN 'Sin contrato firmado'
+        WHEN b.estado IN ('Realizada', 'Seleccion_pendiente', 'En_edicion') AND COALESCE(p.saldo_pendiente, 0) > 0 THEN 'Saldo pendiente post-sesión'
+        WHEN b.estado = 'Entregada' AND COALESCE(p.saldo_pendiente, 0) > 0 THEN 'Saldo pendiente en entrega'
         ELSE NULL
     END AS alerta,
     p.saldo_pendiente
@@ -125,8 +131,8 @@ FROM bookings b
 JOIN clients c ON b.client_id = c.id
 JOIN services s ON b.service_id = s.id
 LEFT JOIN payments p ON b.id = p.booking_id
-WHERE (b.estado = 'Entregada' AND COALESCE(p.saldo_pendiente, 0) > 0)
-   OR (b.estado = 'Agendada' AND b.contrato_firmado = 0);
+WHERE (b.estado = 'Agendada' AND b.contrato_firmado = 0)
+   OR (b.estado IN ('Realizada', 'Seleccion_pendiente', 'En_edicion', 'Entregada') AND COALESCE(p.saldo_pendiente, 0) > 0);
 
 -- Índices para optimización de consultas
 CREATE INDEX idx_clients_telefono ON clients(telefono);
@@ -151,4 +157,3 @@ CREATE TABLE IF NOT EXISTS newsletter_campaigns (
 );
 
 CREATE INDEX IF NOT EXISTS idx_campaigns_fecha ON newsletter_campaigns(fecha_envio);
-

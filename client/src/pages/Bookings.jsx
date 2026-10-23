@@ -4,9 +4,11 @@ import {
   XCircle, ChevronRight, FileText, FileSignature, CheckSquare, 
   MessageCircle, AlertTriangle, Plus, Printer, ExternalLink, 
   Sparkles, DollarSign, ArrowRight, ShieldCheck, PhoneCall,
-  PackageCheck, RefreshCw, Download, Send, Layers, Image as ImageIcon
+  PackageCheck, RefreshCw, Download, Send, Layers, Image as ImageIcon,
+  UserPlus
 } from 'lucide-react'
 import StatusBadge from '../components/StatusBadge'
+import { formatWhatsAppUrl } from '../utils/whatsapp'
 
 const fmt = v => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v ?? 0)
 const fmtDate = d => {
@@ -34,8 +36,9 @@ const PIPELINE_STEPS = [
 ]
 
 const EMPTY_BOOKING = {
-  id_cliente: '', id_servicio: '', fecha_sesion: '', ubicacion: '',
-  contrato_firmado: false, notas_internas: ''
+  id_cliente: '', id_servicio: '', fecha_sesion: '', hora_sesion: '10:00', ubicacion: 'Estudio Central',
+  contrato_firmado: false, notas_internas: '', isFastNewClient: false,
+  fastNombre: '', fastTelefono: '', fastEmail: ''
 }
 
 const getInitials = (name = '') => {
@@ -59,6 +62,8 @@ export default function Bookings() {
   const [cancelReason, setCancelReason] = useState('')
   const [showCancelForm, setShowCancelForm] = useState(false)
   const [successMsg, setSuccessMsg] = useState(null)
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [notesVal, setNotesVal] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -120,51 +125,93 @@ export default function Bookings() {
     }
   }
 
-  const updateContrato = async (id, val) => {
+  const updateBookingField = async (id, fields) => {
     setActionLoading(true)
     try {
       const bId = id || selected?.id_reserva || selected?.id
-      await fetch(`/api/bookings/${bId}`, {
+      const res = await fetch(`/api/bookings/${bId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contrato_firmado: val }),
+        body: JSON.stringify(fields),
       })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Error al actualizar reserva')
+      }
       await refetchBookings()
-      setSuccessMsg(val ? 'Contrato marcado como firmado' : 'Contrato desmarcado')
+      setSuccessMsg('Reserva actualizada')
       setTimeout(() => setSuccessMsg(null), 2500)
     } catch (err) {
       setError(err.message)
+      setTimeout(() => setError(null), 3500)
     } finally {
       setActionLoading(false)
     }
   }
 
+  const updateContrato = async (id, val) => {
+    await updateBookingField(id, { contrato_firmado: val })
+  }
+
+  const handleSaveNotes = async () => {
+    const bId = activeFocusBooking?.id_reserva || activeFocusBooking?.id
+    if (!bId) return
+    await updateBookingField(bId, { notas_internas: notesVal })
+    setEditingNotes(false)
+  }
+
   const handleCreate = async () => {
     setCreating(true)
+    setError(null)
     try {
-      const clientId = parseInt(newBooking.id_cliente || newBooking.client_id)
       const serviceId = parseInt(newBooking.id_servicio || newBooking.service_id)
+      if (!serviceId) throw new Error('Selecciona un servicio fotográfico')
+      if (!newBooking.fecha_sesion) throw new Error('Indica la fecha de la sesión')
+
+      const bodyPayload = {
+        service_id: serviceId,
+        id_servicio: serviceId,
+        fecha_sesion: newBooking.fecha_sesion,
+        hora_sesion: newBooking.hora_sesion || '10:00',
+        ubicacion: newBooking.ubicacion || 'Estudio Central',
+        contrato_firmado: !!newBooking.contrato_firmado,
+        notas_internas: newBooking.notas_internas || ''
+      }
+
+      if (newBooking.isFastNewClient) {
+        if (!newBooking.fastNombre.trim()) {
+          throw new Error('El nombre del nuevo cliente es obligatorio')
+        }
+        bodyPayload.nuevo_cliente = {
+          nombre: newBooking.fastNombre.trim(),
+          telefono: newBooking.fastTelefono.trim(),
+          email: newBooking.fastEmail.trim()
+        }
+      } else {
+        const clientId = parseInt(newBooking.id_cliente || newBooking.client_id)
+        if (!clientId) throw new Error('Selecciona un cliente o usa creación rápida')
+        bodyPayload.client_id = clientId
+        bodyPayload.id_cliente = clientId
+      }
+
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          client_id: clientId,
-          id_cliente: clientId,
-          service_id: serviceId,
-          id_servicio: serviceId,
-          fecha_sesion: newBooking.fecha_sesion,
-          ubicacion: newBooking.ubicacion,
-          contrato_firmado: !!newBooking.contrato_firmado,
-        }),
+        body: JSON.stringify(bodyPayload),
       })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || 'Error al crear reserva')
       }
-      await refetchBookings()
+      
+      await Promise.all([
+        refetchBookings(),
+        fetch('/api/clients').then(r => r.json()).then(cd => setClients(Array.isArray(cd) ? cd : cd.clients || []))
+      ])
+
       setNewBooking(EMPTY_BOOKING)
       setShowModal(false)
-      setSuccessMsg('Reserva creada exitosamente')
+      setSuccessMsg('Reserva creada exitosamente con beneficios aplicados')
       setTimeout(() => setSuccessMsg(null), 3000)
     } catch (err) {
       setError(err.message)
@@ -215,18 +262,26 @@ export default function Bookings() {
   })
 
   const getWhatsAppReminderUrl = (booking) => {
-    const phone = (booking?.telefono_cliente || booking?.cliente_telefono || '').replace(/\D/g, '')
+    if (!booking) return null
     const clientName = (booking?.nombre_cliente || booking?.cliente_nombre || 'Estimado/a').split(' ')[0]
     const dateStr = fmtDate(booking?.fecha_sesion)
+    const timeStr = booking?.hora_sesion ? ` a las ${booking.hora_sesion}` : ''
     const serviceName = booking?.nombre_servicio || booking?.servicio_nombre || 'tu sesión'
-    const msg = encodeURIComponent(`¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio de tu sesión fotográfica (${serviceName}) programada para el ${dateStr}. ¿Todo listo para tu experiencia en el atelier? 📸`)
-    return phone ? `https://wa.me/${phone}?text=${msg}` : null
+    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio de tu sesión fotográfica (${serviceName}) programada para el ${dateStr}${timeStr}. ¿Todo listo para tu experiencia en el atelier? 📸`
+    return formatWhatsAppUrl(booking?.telefono_cliente || booking?.cliente_telefono, msg)
   }
-
-  if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
 
   // Primer elemento activo si no hay seleccionado
   const activeFocusBooking = selected || (bookings.length > 0 ? bookings[0] : null)
+
+  useEffect(() => {
+    if (activeFocusBooking) {
+      setNotesVal(activeFocusBooking.notas_internas || '')
+      setEditingNotes(false)
+    }
+  }, [activeFocusBooking?.id_reserva, activeFocusBooking?.id])
+
+  if (loading) return <div className="loading-spinner"><div className="spinner" /></div>
 
   return (
     <div className="bookings-page" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -626,17 +681,66 @@ export default function Bookings() {
               {/* Shoot Details Body */}
               <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 
-                {/* Bento Grid */}
+                {/* Bento Grid: Fecha, Hora y Ubicación */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#1e1f26', padding: 12, borderRadius: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#94A3B8', fontSize: '0.85rem' }}>
-                    <Calendar size={16} style={{ color: '#e8b072' }} />
-                    <span style={{ color: '#F8FAFC', fontWeight: 500 }}>{fmtDate(activeFocusBooking.fecha_sesion)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: '0.85rem' }}>
+                      <Calendar size={16} style={{ color: '#e8b072' }} />
+                      <span style={{ color: '#F8FAFC', fontWeight: 600 }}>{fmtDate(activeFocusBooking.fecha_sesion)}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#e8b072', fontSize: '0.85rem', background: '#282a30', padding: '2px 8px', borderRadius: 6 }}>
+                      <Clock size={14} />
+                      <span style={{ fontWeight: 700 }}>{activeFocusBooking.hora_sesion || '10:00'} hs</span>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#94A3B8', fontSize: '0.82rem' }}>
-                    <MapPin size={16} style={{ color: '#e8b072' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: '0.82rem' }}>
+                    <MapPin size={15} style={{ color: '#e8b072' }} />
                     <span>{activeFocusBooking.ubicacion || 'Estudio Central Diogo (Palermo)'}</span>
                   </div>
                 </div>
+
+                {/* Consentimiento Redes Sociales / Instagram */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px 14px', borderRadius: 10, background: '#131B2A',
+                  border: activeFocusBooking.autoriza_redes_sociales ? '1px solid rgba(34, 197, 94, 0.25)' : '1px solid rgba(245, 185, 85, 0.25)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Sparkles size={18} style={{ color: activeFocusBooking.autoriza_redes_sociales ? '#4ade80' : '#F5B955', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#F8FAFC' }}>Difusión en Redes / Portfolio</span>
+                      <span style={{ fontSize: '0.72rem', color: activeFocusBooking.autoriza_redes_sociales ? '#4ade80' : '#F5B955' }}>
+                        {activeFocusBooking.autoriza_redes_sociales ? '✓ Autoriza fotos en Instagram/Web' : '🔒 Confidencial (No publicar)'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => updateBookingField(activeFocusBooking.id_reserva || activeFocusBooking.id, { autoriza_redes_sociales: !activeFocusBooking.autoriza_redes_sociales })}
+                    disabled={actionLoading}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, background: '#282a30',
+                      border: 'none', color: '#e8b072', fontSize: '0.75rem', fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {activeFocusBooking.autoriza_redes_sociales ? 'Hacer Privado' : 'Autorizar'}
+                  </button>
+                </div>
+
+                {/* Estilo y Preferencias del Cliente (si existen en su perfil) */}
+                {activeFocusBooking.cliente_notas_estilo && (
+                  <div style={{
+                    background: 'rgba(232, 176, 114, 0.08)', border: '1px solid rgba(232, 176, 114, 0.2)',
+                    borderRadius: 10, padding: '10px 14px'
+                  }}>
+                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#e8b072', fontWeight: 700, display: 'block', marginBottom: 3 }}>
+                      Estilo & Notas del Cliente
+                    </span>
+                    <span style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.4 }}>
+                      {activeFocusBooking.cliente_notas_estilo}
+                    </span>
+                  </div>
+                )}
 
                 {/* Contract Alert Banner */}
                 <div style={{
@@ -666,6 +770,55 @@ export default function Bookings() {
                     {activeFocusBooking.contrato_firmado ? 'Desmarcar' : 'Marcar Firmado'}
                   </button>
                 </div>
+
+                {/* Notas Internas de Producción */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#1e1f26', padding: 12, borderRadius: 10, border: '1px solid #282f42' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748B', fontWeight: 600 }}>
+                      Notas Internas del Rodaje
+                    </span>
+                    {editingNotes ? (
+                      <button
+                        onClick={handleSaveNotes}
+                        disabled={actionLoading}
+                        style={{ background: '#e8b072', color: '#482900', border: 'none', borderRadius: 4, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        Guardar
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setEditingNotes(true)}
+                        style={{ background: 'none', border: 'none', color: '#e8b072', fontSize: '0.72rem', cursor: 'pointer' }}
+                      >
+                        Editar
+                      </button>
+                    )}
+                  </div>
+                  {editingNotes ? (
+                    <textarea
+                      rows={2}
+                      value={notesVal}
+                      onChange={e => setNotesVal(e.target.value)}
+                      placeholder="Vestuario, atrezzo, iluminación específica..."
+                      style={{ background: '#0c0e14', border: '1px solid #282f42', color: '#F8FAFC', borderRadius: 6, padding: 8, fontSize: '0.8rem', width: '100%', resize: 'vertical' }}
+                    />
+                  ) : (
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: activeFocusBooking.notas_internas ? '#cbd5e1' : '#64748B', fontStyle: activeFocusBooking.notas_internas ? 'normal' : 'italic' }}>
+                      {activeFocusBooking.notas_internas || 'Sin notas internas registradas.'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Motivo de Cancelación si aplica */}
+                {activeFocusBooking.estado === 'Cancelada' && activeFocusBooking.razon_cancelacion && (
+                  <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: 8, padding: '10px 12px', color: '#fca5a5', fontSize: '0.8rem'
+                  }}>
+                    <strong style={{ display: 'block', color: '#ef4444', marginBottom: 2 }}>Motivo de Cancelación:</strong>
+                    {activeFocusBooking.razon_cancelacion}
+                  </div>
+                )}
 
                 {/* Pipeline Status Flow */}
                 <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 2 }}>
@@ -834,21 +987,117 @@ export default function Bookings() {
             </div>
             
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Cliente *</label>
-                <select 
-                  className="form-input" 
-                  value={newBooking.id_cliente} 
-                  onChange={e => setNewBooking({...newBooking, id_cliente: e.target.value})}
+              {/* Client Toggle: Existente vs Rápido */}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 14, background: '#131B2A', padding: 4, borderRadius: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setNewBooking({ ...newBooking, isFastNewClient: false })}
+                  style={{
+                    flex: 1, padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    background: !newBooking.isFastNewClient ? '#282a30' : 'transparent',
+                    color: !newBooking.isFastNewClient ? '#F5B955' : '#94A3B8'
+                  }}
                 >
-                  <option value="">Seleccione un cliente...</option>
-                  {clients.map(c => (
-                    <option key={c.id_cliente || c.id} value={c.id_cliente || c.id}>
-                      {c.nombre} {c.telefono ? `(${c.telefono})` : ''}
-                    </option>
-                  ))}
-                </select>
+                  <Users size={14} style={{ display: 'inline', marginRight: 5 }} /> Cliente Existente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewBooking({ ...newBooking, isFastNewClient: true })}
+                  style={{
+                    flex: 1, padding: '6px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    background: newBooking.isFastNewClient ? '#282a30' : 'transparent',
+                    color: newBooking.isFastNewClient ? '#F5B955' : '#94A3B8'
+                  }}
+                >
+                  <UserPlus size={14} style={{ display: 'inline', marginRight: 5 }} /> + Alta Rápida de Cliente
+                </button>
               </div>
+
+              {!newBooking.isFastNewClient ? (
+                <div className="form-group">
+                  <label className="form-label">Cliente *</label>
+                  <select 
+                    className="form-input" 
+                    value={newBooking.id_cliente} 
+                    onChange={e => setNewBooking({...newBooking, id_cliente: e.target.value})}
+                  >
+                    <option value="">Seleccione un cliente...</option>
+                    {clients.map(c => (
+                      <option key={c.id_cliente || c.id} value={c.id_cliente || c.id}>
+                        {c.nombre} {c.telefono ? `(${c.telefono})` : ''} {c.descuento_sugerido_pct ? `— [VIP ${c.descuento_sugerido_pct}%]` : ''}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* VIP Benefit Callout if client has discount */}
+                  {(() => {
+                    const selClient = clients.find(c => String(c.id_cliente || c.id) === String(newBooking.id_cliente))
+                    const discount = selClient?.descuento_sugerido_pct || 0
+                    if (discount > 0) {
+                      const selService = services.find(s => String(s.id_servicio || s.id) === String(newBooking.id_servicio))
+                      const basePrice = selService ? parseFloat(selService.precio_base) : null
+                      const finalPrice = basePrice ? basePrice * (1 - discount / 100) : null
+                      return (
+                        <div style={{
+                          marginTop: 8, padding: '8px 12px', borderRadius: 8,
+                          background: 'rgba(245, 185, 85, 0.1)', border: '1px solid rgba(245, 185, 85, 0.25)',
+                          fontSize: '0.78rem', color: '#F5B955'
+                        }}>
+                          <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Sparkles size={14} /> Beneficio Fidelidad VIP ({discount}% Descuento)
+                          </div>
+                          <div style={{ color: '#cbd5e1', marginTop: 2 }}>
+                            {selService 
+                              ? `Tarifa Original: ${fmt(basePrice)} → Final con VIP: ${fmt(finalPrice)}`
+                              : 'El descuento del ' + discount + '% se aplicará automáticamente al total.'}
+                          </div>
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#191b22', padding: 12, borderRadius: 8, border: '1px solid #282f42', marginBottom: 14 }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#e8b072', textTransform: 'uppercase' }}>
+                    Alta Rápida de Cliente
+                  </span>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '0.78rem' }}>Nombre Completo *</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder="Ej: Sofia Loren"
+                      value={newBooking.fastNombre}
+                      onChange={e => setNewBooking({ ...newBooking, fastNombre: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-row" style={{ margin: 0 }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.78rem' }}>Teléfono (WhatsApp)</label>
+                      <input
+                        type="tel"
+                        className="form-input"
+                        placeholder="612345678"
+                        value={newBooking.fastTelefono}
+                        onChange={e => setNewBooking({ ...newBooking, fastTelefono: e.target.value })}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontSize: '0.78rem' }}>Email (Opcional)</label>
+                      <input
+                        type="email"
+                        className="form-input"
+                        placeholder="cliente@email.com"
+                        value={newBooking.fastEmail}
+                        onChange={e => setNewBooking({ ...newBooking, fastEmail: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Servicio Fotográfico *</label>
@@ -858,7 +1107,7 @@ export default function Bookings() {
                   onChange={e => setNewBooking({...newBooking, id_servicio: e.target.value})}
                 >
                   <option value="">Seleccione un servicio...</option>
-                  {services.filter(s => s.activo).map(s => (
+                  {services.filter(s => s.activo !== 0).map(s => (
                     <option key={s.id_servicio || s.id} value={s.id_servicio || s.id}>
                       {s.nombre} — {fmt(s.precio_base)}
                     </option>
@@ -877,26 +1126,47 @@ export default function Bookings() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Locación (opcional)</label>
+                  <label className="form-label">Hora de Sesión</label>
                   <input 
-                    type="text" 
+                    type="time" 
                     className="form-input" 
-                    value={newBooking.ubicacion} 
-                    onChange={e => setNewBooking({...newBooking, ubicacion: e.target.value})} 
-                    placeholder="Estudio Central, Exterior..." 
+                    value={newBooking.hora_sesion} 
+                    onChange={e => setNewBooking({...newBooking, hora_sesion: e.target.value})} 
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 6 }}>
+                <label className="form-label">Locación (opcional)</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={newBooking.ubicacion} 
+                  onChange={e => setNewBooking({...newBooking, ubicacion: e.target.value})} 
+                  placeholder="Estudio Central, Exterior..." 
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Notas Internas de Rodaje (Opcional)</label>
+                <textarea
+                  className="form-textarea"
+                  rows={2}
+                  value={newBooking.notas_internas}
+                  onChange={e => setNewBooking({ ...newBooking, notas_internas: e.target.value })}
+                  placeholder="Detalles de estilismo, vestuario, ideas..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 4 }}>
                   <input
                     type="checkbox"
                     checked={newBooking.contrato_firmado}
                     onChange={e => setNewBooking({...newBooking, contrato_firmado: e.target.checked})}
                     style={{ width: 16, height: 16, accentColor: '#e8b072' }}
                   />
-                  <span style={{ fontSize: '0.88rem', color: '#e2e8f0' }}>Marcar contrato como firmado previamente</span>
+                  <span style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>Marcar contrato como firmado digitalmente</span>
                 </label>
               </div>
             </div>
@@ -905,7 +1175,7 @@ export default function Bookings() {
               <button className="btn-secondary" onClick={() => setShowModal(false)}>Cancelar</button>
               <button 
                 className="btn-primary" 
-                disabled={creating || !newBooking.id_cliente || !newBooking.id_servicio || !newBooking.fecha_sesion} 
+                disabled={creating || (!newBooking.isFastNewClient && !newBooking.id_cliente) || (newBooking.isFastNewClient && !newBooking.fastNombre.trim()) || !newBooking.id_servicio || !newBooking.fecha_sesion} 
                 onClick={handleCreate}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
