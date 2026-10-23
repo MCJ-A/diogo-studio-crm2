@@ -45,7 +45,7 @@ def create_payment():
             data.get('anticipo_pagado', 0),
             data.get('estado_pago', 'Pendiente'),
             data.get('fecha_ultimo_pago'),
-            data.get('metodo_pago', 'Transferencia Bancaria'),
+            data.get('metodo_pago', 'MB WAY'),
             data.get('notas_pago')
         ))
         db.commit()

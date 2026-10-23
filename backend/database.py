@@ -24,7 +24,7 @@ def run_migrations(conn):
         cols_payments = [r[1] for r in cursor.fetchall()]
         if cols_payments:
             if 'metodo_pago' not in cols_payments:
-                cursor.execute("ALTER TABLE payments ADD COLUMN metodo_pago TEXT DEFAULT 'Transferencia Bancaria'")
+                cursor.execute("ALTER TABLE payments ADD COLUMN metodo_pago TEXT DEFAULT 'MB WAY'")
             if 'notas_pago' not in cols_payments:
                 cursor.execute("ALTER TABLE payments ADD COLUMN notas_pago TEXT")
 

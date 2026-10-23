@@ -59,7 +59,7 @@ CREATE TABLE payments (
     anticipo_pagado REAL DEFAULT 0,
     saldo_pendiente GENERATED ALWAYS AS (monto_bruto - descuento_aplicado - anticipo_pagado) STORED,
     estado_pago TEXT CHECK (estado_pago IN ('Pendiente', 'Parcial', 'Completado')),
-    metodo_pago TEXT DEFAULT 'Transferencia Bancaria',
+    metodo_pago TEXT DEFAULT 'MB WAY',
     notas_pago TEXT,
     fecha_ultimo_pago DATE,
     FOREIGN KEY (booking_id) REFERENCES bookings(id)

@@ -695,7 +695,7 @@ export default function Bookings() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: '0.82rem' }}>
                     <MapPin size={15} style={{ color: '#e8b072' }} />
-                    <span>{activeFocusBooking.ubicacion || 'Estudio Central Diogo (Palermo)'}</span>
+                    <span>{activeFocusBooking.ubicacion || 'Estúdio Central Diogo'}</span>
                   </div>
                 </div>
 
@@ -1080,7 +1080,7 @@ export default function Bookings() {
                       <input
                         type="tel"
                         className="form-input"
-                        placeholder="612345678"
+                        placeholder="912345678"
                         value={newBooking.fastTelefono}
                         onChange={e => setNewBooking({ ...newBooking, fastTelefono: e.target.value })}
                       />
@@ -1143,7 +1143,7 @@ export default function Bookings() {
                   className="form-input" 
                   value={newBooking.ubicacion} 
                   onChange={e => setNewBooking({...newBooking, ubicacion: e.target.value})} 
-                  placeholder="Estudio Central, Exterior..." 
+                  placeholder="Estúdio Central, Lisboa, Sintra, Cascais..." 
                 />
               </div>
 

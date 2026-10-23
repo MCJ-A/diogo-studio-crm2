@@ -1200,7 +1200,7 @@ export default function Clients() {
                     className="form-input"
                     value={newClient.telefono}
                     onChange={e => setNewClient({ ...newClient, telefono: e.target.value })}
-                    placeholder="555-0199"
+                    placeholder="912 345 678"
                   />
                 </div>
                 <div className="form-group">

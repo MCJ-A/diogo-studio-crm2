@@ -62,7 +62,7 @@ def get_bookings():
                    p.motivo_descuento,
                    COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
                    COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
-                   COALESCE(p.metodo_pago, 'Transferencia Bancaria') AS metodo_pago,
+                   COALESCE(p.metodo_pago, 'MB WAY') AS metodo_pago,
                    p.notas_pago,
                    p.fecha_ultimo_pago
             FROM bookings b
@@ -91,7 +91,7 @@ def get_booking(id):
                    p.motivo_descuento,
                    COALESCE(p.saldo_pendiente, (COALESCE(p.monto_bruto, s.precio_base) - COALESCE(p.descuento_aplicado, 0) - COALESCE(p.anticipo_pagado, 0))) AS saldo_pendiente,
                    COALESCE(p.estado_pago, 'Pendiente') AS estado_pago,
-                   COALESCE(p.metodo_pago, 'Transferencia Bancaria') AS metodo_pago,
+                   COALESCE(p.metodo_pago, 'MB WAY') AS metodo_pago,
                    p.notas_pago,
                    p.fecha_ultimo_pago
             FROM bookings b

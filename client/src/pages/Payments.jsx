@@ -34,7 +34,7 @@ export default function Payments() {
   // Modal registrar abono
   const [showAbonoModal, setShowAbonoModal] = useState(false)
   const [abonoAmount, setAbonoAmount] = useState('')
-  const [abonoMethod, setAbonoMethod] = useState('Bizum')
+  const [abonoMethod, setAbonoMethod] = useState('MB WAY')
   const [abonoNotes, setAbonoNotes] = useState('')
 
   // Modal extras / upsell
@@ -288,7 +288,7 @@ export default function Payments() {
     const desc = parseFloat(b.descuento_aplicado || b.descuento) || 0
     const anti = parseFloat(b.anticipo_pagado || b.anticipo) || 0
     const saldo = Math.max(0, bruto - desc - anti)
-    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio amistoso sobre el balance pendiente de ${fmt(saldo)} para tu próxima sesión (${b.nombre_servicio || b.servicio_nombre}). ¿Deseas que te facilitemos las opciones de pago (Bizum/Transferencia/Tarjeta)? 💳`
+    const msg = `¡Hola ${clientName}! ✨ Te saludamos desde Diogo Studio. Te enviamos este recordatorio amistoso sobre el balance pendiente de ${fmt(saldo)} para tu próxima sesión (${b.nombre_servicio || b.servicio_nombre}). ¿Deseas que te facilitemos las opciones de pago (MB WAY / Transferencia / Multibanco)? 💳`
     return formatWhatsAppUrl(b.telefono_cliente || b.cliente_telefono, msg)
   }
 
@@ -806,16 +806,19 @@ export default function Payments() {
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Smartphone size={12} style={{ color: '#00D4B2' }} /> Bizum
+                      <Smartphone size={12} style={{ color: '#ff4d4d' }} /> MB WAY
                     </span>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <CreditCard size={12} style={{ color: '#F5B955' }} /> Stripe / Tarjeta
+                      <Receipt size={12} style={{ color: '#F5B955' }} /> Multibanco
                     </span>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Wallet size={12} style={{ color: '#F5B955' }} /> Wire SEPA
+                      <Wallet size={12} style={{ color: '#F5B955' }} /> IBAN / SEPA
                     </span>
                     <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Euro size={12} style={{ color: '#F5B955' }} /> Efectivo
+                      <CreditCard size={12} style={{ color: '#F5B955' }} /> Cartão / TPV
+                    </span>
+                    <span style={{ padding: '3px 8px', borderRadius: 4, background: '#282a30', fontSize: '0.72rem', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Euro size={12} style={{ color: '#F5B955' }} /> Dinheiro
                     </span>
                   </div>
                 </div>
@@ -946,17 +949,18 @@ export default function Payments() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Método de Cobro</label>
+                <label className="form-label">Método de Cobro (Portugal)</label>
                 <select
                   className="form-select"
                   value={abonoMethod}
                   onChange={e => setAbonoMethod(e.target.value)}
                 >
-                  <option value="Bizum">Bizum Inmediato</option>
-                  <option value="Transferencia Bancaria">Transferencia Bancaria (IBAN)</option>
-                  <option value="Tarjeta / TPV Estudio">Tarjeta / TPV en Estudio</option>
-                  <option value="Efectivo en Estudio">Efectivo en Estudio</option>
-                  <option value="Stripe Link / Online">Stripe Link / Pasarela Online</option>
+                  <option value="MB WAY">MB WAY (Portugal)</option>
+                  <option value="Transferencia Bancaria">Transferência Bancária (IBAN / SEPA)</option>
+                  <option value="Multibanco">Referência Multibanco</option>
+                  <option value="Tarjeta / TPV Estudio">Cartão / Terminal TPV no Estúdio</option>
+                  <option value="Efectivo en Estudio">Dinheiro / Efectivo no Estúdio</option>
+                  <option value="Stripe Link / Online">Stripe Link / Pagamento Online</option>
                 </select>
               </div>
 
