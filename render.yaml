@@ -10,3 +10,11 @@ services:
         value: 3.11.0
       - key: JWT_SECRET_KEY
         generateValue: true
+      - key: DIOGO_USER
+        value: diogo
+      - key: DIOGO_PASSWORD
+        sync: false
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false

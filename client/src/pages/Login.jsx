@@ -91,7 +91,7 @@ export default function Login({ onLogin }) {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Insira o seu utilizador"
+                  placeholder="ex: diogo"
                   required
                   className="login-v2-input"
                 />
@@ -108,7 +108,7 @@ export default function Login({ onLogin }) {
                   href="#forgot"
                   onClick={(e) => {
                     e.preventDefault();
-                    alert('Contacte o administrador do sistema para redefinir o seu acesso.');
+                    alert('Para redefinir a tua palavra-passe privada de Diogo, define a variável DIOGO_PASSWORD no teu painel do Render ou altera-a nas definições do sistema.');
                   }}
                   className="login-v2-forgot"
                 >

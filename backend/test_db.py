@@ -5,12 +5,13 @@ def test_database():
     """Verifica la integridad y estructura de la base de datos"""
     
     # Verificar si el archivo de base de datos existe
-    if not os.path.exists('fotografia.db'):
-        print("Error: No se encontró el archivo fotografia.db")
+    db_path = os.path.join(os.path.dirname(__file__), 'fotografia.db')
+    if not os.path.exists(db_path):
+        print(f"Error: No se encontró el archivo {db_path}")
         return False
     
     try:
-        conn = sqlite3.connect('fotografia.db')
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
         # 1. Verificar que todas las tablas existen
@@ -18,7 +19,7 @@ def test_database():
         for table in ['clients', 'services', 'bookings', 'payments']:
             cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'")
             if not cursor.fetchone():
-                print(f"  ✗ Tabla '{table}' NO existe")
+                print(f"  [X] Tabla '{table}' NO existe")
                 tables_ok = False
         
         # 2. Verificar que todas las vistas existen
@@ -26,7 +27,7 @@ def test_database():
         for view in ['v_client_loyalty', 'v_alertas_operativas', 'v_oportunidades_recontacto']:
             cursor.execute(f"SELECT name FROM sqlite_master WHERE type='view' AND name='{view}'")
             if not cursor.fetchone():
-                print(f"  ✗ Vista '{view}' NO existe")
+                print(f"  [X] Vista '{view}' NO existe")
                 views_ok = False
         
         # 3. Verificar índices
@@ -39,7 +40,7 @@ def test_database():
         
         for idx in expected_indexes:
             if idx not in indexes:
-                print(f"  ✗ Índice '{idx}' NO existe")
+                print(f"  [X] Índice '{idx}' NO existe")
                 indexes_ok = False
         
         # 4. Verificar integridad de datos (FK constraints)
@@ -105,7 +106,7 @@ def test_database():
                      invalid_states == 0 and invalid_payment_states == 0)
         
         if all_passed:
-            print("✓ TODAS LAS PRUEBAS PASARON")
+            print("[OK] TODAS LAS PRUEBAS PASARON")
             print(f"  - Tablas: OK")
             print(f"  - Vistas: OK")
             print(f"  - Índices: OK")
@@ -115,7 +116,7 @@ def test_database():
             print(f"  - Reservas sin contrato: {no_contract_count}")
             print(f"  - Entregadas con saldo pendiente: {pending_balance_count}")
         else:
-            print("✗ ALGUNAS PRUEBAS FALLARON")
+            print("[X] ALGUNAS PRUEBAS FALLARON")
             if not tables_ok:
                 print("  - Falta alguna tabla")
             if not views_ok:
@@ -130,7 +131,7 @@ def test_database():
         return all_passed
         
     except Exception as e:
-        print(f"\n✗ ERROR DURANTE EL TEST: {e}")
+        print(f"\n[X] ERROR DURANTE EL TEST: {e}")
         import traceback
         traceback.print_exc()
         return False

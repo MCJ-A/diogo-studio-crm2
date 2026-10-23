@@ -166,3 +166,51 @@ def get_kpis():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+from flask import send_file
+import io
+import os
+import json
+
+@dashboard_bp.route('/backup')
+def download_backup():
+    try:
+        from database import DB_PATH
+        turso_url = os.environ.get('TURSO_DATABASE_URL') or os.environ.get('TURSO_URL')
+        
+        # Se estiver em SQLite local com ficheiro no disco
+        if not turso_url and os.path.exists(DB_PATH):
+            return send_file(
+                DB_PATH,
+                as_attachment=True,
+                download_name=f"diogo_studio_backup_{date.today().isoformat()}.db"
+            )
+        
+        # Se for Turso na cloud, exporta um dump completo JSON de todas as tabelas
+        db = get_db()
+        cursor = db.cursor()
+        dump_data = {
+            "metadata": {
+                "studio": "Diogo Studio",
+                "export_date": date.today().isoformat(),
+                "provider": "Turso Cloud SQLite" if turso_url else "SQLite"
+            }
+        }
+        tables = ['users', 'clients', 'services', 'bookings', 'payments', 'calendar_notes', 'newsletter_campaigns']
+        for table in tables:
+            try:
+                cursor.execute(f"SELECT * FROM {table}")
+                dump_data[table] = [dict(r) for r in cursor.fetchall()]
+            except Exception:
+                pass
+        db.close()
+
+        dump_bytes = io.BytesIO(json.dumps(dump_data, indent=2, ensure_ascii=False).encode('utf-8'))
+        return send_file(
+            dump_bytes,
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=f"diogo_studio_backup_{date.today().isoformat()}.json"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

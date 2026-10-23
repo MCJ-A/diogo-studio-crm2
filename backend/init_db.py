@@ -28,10 +28,12 @@ def init_database():
         # Reabrir el cursor en modo normal (executescript cerró la transacción)
         conn.row_factory = sqlite3.Row
 
-        # --- 0. Usuarios (Admin) ---
+        # --- 0. Utilizador Privado de Diogo ---
         from werkzeug.security import generate_password_hash
-        admin_hash = generate_password_hash('admin123')
-        cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", ('admin', admin_hash))
+        diogo_user = os.environ.get('DIOGO_USER', 'diogo').strip()
+        diogo_pass = os.environ.get('DIOGO_PASSWORD', 'DiogoStudio2026!').strip()
+        pwd_hash = generate_password_hash(diogo_pass)
+        cursor.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (diogo_user, pwd_hash))
 
         # --- 1. Servicios ---
         services_data = [

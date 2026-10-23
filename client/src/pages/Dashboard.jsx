@@ -4,7 +4,7 @@ import {
   Calendar, Euro, Users, AlertTriangle, LayoutDashboard, XCircle, 
   Plus, ArrowUpRight, TrendingUp, ShieldAlert, Sparkles, MessageCircle, 
   ChevronRight, ExternalLink, Camera, Clock, Trophy, Award, Medal, CheckCircle2,
-  FileSignature, Target, Send, ArrowRight, Volume2, VolumeX, Bookmark
+  FileSignature, Target, Send, ArrowRight, Volume2, VolumeX, Bookmark, Download
 } from 'lucide-react'
 import { formatWhatsAppUrl } from '../utils/whatsapp'
 import { speakText, stopSpeaking, buildDailyBriefingSpeech } from '../utils/voice'
@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState([])
   const [calendarNotes, setCalendarNotes] = useState([])
   const [speaking, setSpeaking] = useState(false)
+  const [downloadingBackup, setDownloadingBackup] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedFilter, setSelectedFilter] = useState('all')
@@ -105,6 +106,35 @@ export default function Dashboard() {
     return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'DS'
   }
 
+  const handleDownloadBackup = async () => {
+    try {
+      setDownloadingBackup(true)
+      const token = localStorage.getItem('token')
+      const res = await fetch('/api/dashboard/backup', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
+      if (!res.ok) throw new Error('Falha ao descarregar a cópia de segurança')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const disposition = res.headers.get('content-disposition')
+      let filename = `diogo_studio_backup_${new Date().toISOString().split('T')[0]}.db`
+      if (disposition && disposition.includes('filename=')) {
+        filename = disposition.split('filename=')[1].replace(/["']/g, '')
+      }
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('Erro ao transferir cópia de segurança: ' + e.message)
+    } finally {
+      setDownloadingBackup(false)
+    }
+  }
+
   // Calculate revenue total
   const totalRevenue = kpis?.weekly_revenue ?? kpis?.ingreso_total ?? (loyalty.reduce((acc, c) => acc + (c.total_gastado || 0), 0) || 6650)
   const bookingsCount = kpis?.bookings_today ?? kpis?.reservas_agendadas ?? 2
@@ -143,6 +173,23 @@ export default function Dashboard() {
           >
             {speaking ? <VolumeX size={15} /> : <Volume2 size={15} />}
             <span>{speaking ? 'Parar Áudio' : 'Ouvir Resumo'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadBackup}
+            disabled={downloadingBackup}
+            title="Descarregar cópia de segurança completa da base de dados"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(25, 27, 34, 0.9)',
+              border: '1px solid rgba(148, 163, 184, 0.25)',
+              color: '#94A3B8', fontSize: '0.8rem', fontWeight: 600
+            }}
+          >
+            <Download size={14} />
+            <span>{downloadingBackup ? 'A transferir...' : 'Cópia de Segurança'}</span>
           </button>
 
           {calendarNotes.filter(n => !n.completado).length > 0 && (
